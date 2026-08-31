@@ -84,6 +84,9 @@ _BLACK_RE = re.compile(
 )
 _FREEZE_START_RE = re.compile(r"freeze_start:\s*(?P<value>[0-9.]+)")
 _FREEZE_END_RE = re.compile(r"freeze_end:\s*(?P<value>[0-9.]+)")
+_PROGRESS_TIME_RE = re.compile(
+    r"time=(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>[0-9.]+)"
+)
 
 
 def _run_filter(path: Path, video_filter: str, runner: Runner) -> str:
@@ -145,10 +148,20 @@ def detect_freezes(
         if end and pending is not None:
             intervals.append(Interval(pending, float(end.group("value")), "freeze"))
             pending = None
+    if pending is not None:
+        progress = list(_PROGRESS_TIME_RE.finditer(output))
+        if progress:
+            last = progress[-1]
+            end_seconds = (
+                int(last.group("hours")) * 3600
+                + int(last.group("minutes")) * 60
+                + float(last.group("seconds"))
+            )
+            if end_seconds > pending:
+                intervals.append(Interval(pending, end_seconds, "freeze"))
     return intervals
 
 
 def subprocess_runner(command: Sequence[str], **kwargs: object) -> subprocess.CompletedProcess:
     """Public seam for integrations that need to wrap process execution."""
     return subprocess.run(command, **kwargs)  # type: ignore[arg-type]
-

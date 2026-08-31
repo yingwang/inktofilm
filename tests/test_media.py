@@ -45,9 +45,14 @@ def test_temporal_detector_parsing(monkeypatch, tmp_path):
     )
     assert [(event.start_seconds, event.end_seconds) for event in black] == [(1.2, 1.8)]
 
-    freeze_output = "freeze_start: 2.0\nfreeze_duration: 1.0\nfreeze_end: 3.0"
+    freeze_output = (
+        "freeze_start: 2.0\nfreeze_duration: 1.0\nfreeze_end: 3.0\n"
+        "freeze_start: 4.0\nframe=144 time=00:00:06.00"
+    )
     frozen = media.detect_freezes(
         video, runner=lambda *args, **kwargs: completed(stderr=freeze_output)
     )
-    assert [(event.start_seconds, event.end_seconds) for event in frozen] == [(2.0, 3.0)]
-
+    assert [(event.start_seconds, event.end_seconds) for event in frozen] == [
+        (2.0, 3.0),
+        (4.0, 6.0),
+    ]

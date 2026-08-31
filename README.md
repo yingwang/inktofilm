@@ -59,6 +59,20 @@ open reports/latest/index.html
 
 The runner writes both a machine-readable `report.json` and a self-contained `index.html`.
 
+### Run the real-media smoke test
+
+The repository includes a reproducible FFmpeg fixture generator. It creates one healthy video and
+one intentionally broken video with black and frozen segments:
+
+```bash
+./scripts/generate-fixtures.sh
+vidspec run examples/e2e.json --output reports/e2e
+```
+
+The command is expected to return exit code `1`: the healthy case passes, while the broken fixture
+must fail resolution, black-frame, and freeze checks. This is also exercised in CI when FFmpeg is
+available.
+
 ## Define a video contract
 
 ```json
@@ -172,4 +186,3 @@ Contributions should add inspectable evidence, not only another opaque score. Se
 ## License
 
 [MIT](LICENSE)
-

@@ -1,0 +1,32 @@
+{
+  "name": "real-ffmpeg-smoke-test",
+  "cases": [
+    {
+      "id": "healthy-motion",
+      "video": "generated/good.mp4",
+      "prompt": "A continuously moving diagnostic test pattern.",
+      "expect": {
+        "duration_seconds": {"min": 3.9, "max": 4.1},
+        "resolution": {"min_width": 1280, "min_height": 720},
+        "fps": {"min": 23.9},
+        "codecs": ["h264"],
+        "black_frames": {"max_total_ratio": 0.01},
+        "freezes": {"max_total_ratio": 0.05}
+      }
+    },
+    {
+      "id": "known-bad-segments",
+      "video": "generated/bad.mp4",
+      "prompt": "A deliberately broken fixture containing black and frozen segments.",
+      "expect": {
+        "duration_seconds": {"min": 3.9, "max": 4.1},
+        "resolution": {"min_width": 1280, "min_height": 720},
+        "fps": {"min": 23.9},
+        "codecs": ["h264"],
+        "black_frames": {"max_total_ratio": 0.01},
+        "freezes": {"max_total_ratio": 0.05}
+      }
+    }
+  ]
+}
+
