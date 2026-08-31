@@ -1,0 +1,31 @@
+{
+  "name": "teapot-model-v2",
+  "cases": [
+    {
+      "id": "camera-orbit",
+      "video": "generated/camera-orbit.mp4",
+      "prompt": "A camera slowly orbits a red ceramic teapot on a wooden table. The teapot remains unchanged.",
+      "expect": {
+        "duration_seconds": {"min": 4, "max": 8},
+        "resolution": {"min_width": 720, "min_height": 480},
+        "fps": {"min": 20},
+        "codecs": ["h264", "hevc", "av1", "vp9"],
+        "black_frames": {"max_total_ratio": 0.01},
+        "freezes": {"max_total_ratio": 0.05}
+      },
+      "metrics": {
+        "prompt_alignment": {
+          "value": 0.88,
+          "min": 0.80,
+          "source": "example external VLM evaluator"
+        },
+        "identity_consistency": {
+          "value": 0.74,
+          "min": 0.78,
+          "source": "example external face/object evaluator"
+        }
+      }
+    }
+  ]
+}
+
