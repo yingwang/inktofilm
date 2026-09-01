@@ -1,8 +1,26 @@
 # Production provider protocols
 
-InkToFilm includes Codex CLI planning and judging plus fal MiniMax H3 video generation, and a Claude
-Code agent plans and judges directly by supplying its own reviewed results. Each role can instead be
-supplied as an explicit command. Commands are never loaded from a screenplay or plan.
+InkToFilm includes Codex CLI and Claude Code CLI planning and judging plus fal MiniMax H3 video
+generation, and a Claude Code agent can also judge directly by supplying its own reviewed results.
+Each role can instead be supplied as an explicit command. Commands are never loaded from a
+screenplay or plan.
+
+## Built-in judges
+
+`--semantic-codex` on `run`, and the default judge in `produce`, sends the sampled frames to
+`codex exec` with `--sandbox read-only` and a structured-output schema.
+
+`--semantic-claude` on `run`, and `--judge-claude` on `produce`, does the same through `claude
+--print --json-schema`. Claude Code has no flag for attaching an image, so the frames are named by
+absolute path in the prompt and read with the Read tool, and their directories are opened with
+`--add-dir`. The session runs `--restricted`, which removes the command-running tools and WebFetch,
+confines the file tools to those directories, and ignores user, project, and local settings, so
+nothing in the operator's own configuration can color a verdict. `--strict-mcp-config` keeps MCP
+servers out of it, and `--allowedTools Read` leaves reading as the only capability. InkToFilm reads
+the run's `structured_output`, falls back to parsing `result`, and treats a reported error or any
+permission denial as a failed evaluation rather than a silent pass.
+
+Both judges use the CLI's own authentication. InkToFilm never handles those credentials.
 
 ## Planner command
 

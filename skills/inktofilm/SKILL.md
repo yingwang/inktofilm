@@ -48,8 +48,15 @@ Max as the default video generator, while respecting any model the user explicit
 - In Codex, the CLI's built-in integration does the same work through the authenticated Codex CLI:
   `inktofilm run --semantic-codex` for judging, and the default planner and judge of
   `inktofilm produce`.
+- When the user wants the run to finish unattended, hand judging to a CLI instead of doing it in the
+  loop: `inktofilm run --semantic-claude`, or `inktofilm produce --judge-claude`, which needs nothing
+  but Claude Code and a fal key. Prefer judging in the loop when you are already present, since it
+  costs one model rather than two and you can notice what no assertion happened to ask about.
 - Any other model can be wired in through the JSON stdin/stdout hooks: `--semantic-command`,
   `--planner-command`, `--judge-command`, and `--video-command`.
+- Whichever judge runs, it only scores the assertions the plan wrote. Write assertions for the
+  failures that actually recur, including invented on-screen text, letterboxing baked into a frame,
+  a costume drifting toward the wrong culture, and an expression that contradicts the scene.
 
 - Expand a short idea into a screenplay, character and world bible, and a sequence of independently
   generatable shots. Preserve the user's named characters, dialogue, visual rules, and ending.

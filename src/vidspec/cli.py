@@ -25,6 +25,7 @@ from vidspec.production import (
     safe_id,
 )
 from vidspec.providers import (
+    ClaudeCodeProvider,
     CodexCLIProvider,
     CommandVideoGenerator,
     FalFaceSwapper,
@@ -34,6 +35,7 @@ from vidspec.providers import (
 )
 from vidspec.report import write_html, write_json
 from vidspec.semantic import (
+    ClaudeCodeSemanticEvaluator,
     CodexSemanticEvaluator,
     CommandSemanticEvaluator,
     JsonSemanticEvaluator,
@@ -91,6 +93,11 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="judge sampled frames with the locally authenticated Codex CLI",
     )
+    semantic.add_argument(
+        "--semantic-claude",
+        action="store_true",
+        help="judge sampled frames with the locally authenticated Claude Code CLI",
+    )
     run.add_argument(
         "--semantic-timeout",
         type=float,
@@ -143,6 +150,15 @@ def _parser() -> argparse.ArgumentParser:
     produce.add_argument(
         "--judge-command",
         help="BYOM semantic judge command using InkToFilm's JSON evaluator protocol",
+    )
+    produce.add_argument(
+        "--judge-claude",
+        action="store_true",
+        help="judge each shot with the locally authenticated Claude Code CLI instead of Codex",
+    )
+    produce.add_argument(
+        "--claude-model",
+        help="optional model override for the authenticated Claude Code CLI",
     )
     produce.add_argument(
         "--video-command",
@@ -244,6 +260,10 @@ def _run(args: argparse.Namespace) -> int:
             semantic_evaluator = CodexSemanticEvaluator(
                 CodexCLIProvider(timeout_seconds=args.semantic_timeout)
             )
+        elif args.semantic_claude:
+            semantic_evaluator = ClaudeCodeSemanticEvaluator(
+                ClaudeCodeProvider(timeout_seconds=args.semantic_timeout)
+            )
         report = run_suite(
             suite,
             semantic_evaluator=semantic_evaluator,
@@ -309,14 +329,20 @@ def _run(args: argparse.Namespace) -> int:
                     resolution=args.resolution,
                 )
             )
-            evaluator = (
-                CommandSemanticEvaluator.from_string(
+            if args.judge_command:
+                evaluator = CommandSemanticEvaluator.from_string(
                     args.judge_command,
                     timeout_seconds=args.codex_timeout,
                 )
-                if args.judge_command
-                else CodexSemanticEvaluator(codex)
-            )
+            elif args.judge_claude:
+                evaluator = ClaudeCodeSemanticEvaluator(
+                    ClaudeCodeProvider(
+                        model=args.claude_model,
+                        timeout_seconds=args.codex_timeout,
+                    )
+                )
+            else:
+                evaluator = CodexSemanticEvaluator(codex)
             if not args.no_stills:
                 image_generator = FalImageGenerator(
                     model=args.image_model,
