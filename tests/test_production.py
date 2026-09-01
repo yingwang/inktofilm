@@ -785,3 +785,28 @@ def test_cli_selection_map_rejects_malformed_values():
     for bad in ("arrival", "arrival=", "arrival=zero", "arrival=0"):
         with pytest.raises(ProductionError, match="SHOT_ID=ATTEMPT"):
             _selection_map([bad])
+
+
+def test_unjudged_rerun_keeps_the_newest_take_from_an_earlier_reshoot(tmp_path, monkeypatch):
+    def fake_evaluate(spec, base_dir, **kwargs):
+        return CaseReport(spec.case_id, spec.video, spec.prompt, None, [])
+
+    monkeypatch.setattr("vidspec.produce.evaluate_case", fake_evaluate)
+    output = tmp_path / "production"
+
+    def run(**kwargs):
+        return ProductionOrchestrator(
+            planner=None,
+            generator=_Generator(),
+            evaluator=None,
+            editor=_Editor(),
+            image_generator=_Images(),
+        ).produce("script", output, plan=_staged_plan(), unjudged=True, **kwargs)
+
+    run()
+    run(reshoot=["greeting"])
+    # A plain re-run has no judge to prefer an older take, so the reshoot stands.
+    result = run()
+    manifest = json.loads(result.manifest.read_text(encoding="utf-8"))
+    assert manifest["shots"][1]["selected_video"] == "shots/greeting-attempt-2.mp4"
+    assert result.final_video.read_bytes() == b"film:arrival-attempt-1.mp4,greeting-attempt-2.mp4"

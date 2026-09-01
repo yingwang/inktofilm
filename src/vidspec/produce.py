@@ -436,13 +436,16 @@ class ProductionOrchestrator:
             selected_case: Optional[CaseSpec] = None
             # A reshoot continues numbering after the attempts on disk, so nothing is lost and
             # the fresh take is the one the loop evaluates. A selected attempt is the only one
-            # considered. Otherwise existing attempts are evaluated in order and only a missing
-            # attempt is generated.
+            # considered. With a judge, existing attempts are evaluated in order and only a
+            # missing attempt is generated. Without one there is nothing to rank them by, so the
+            # newest take stands: a reshoot from an earlier run must not be undone by a re-run.
+            existing = self._existing_attempts(output_dir, shot.shot_id)
             if shot.shot_id in select:
                 candidates: Sequence[int] = (select[shot.shot_id],)
             elif shot.shot_id in reshoot:
-                first = self._existing_attempts(output_dir, shot.shot_id) + 1
-                candidates = range(first, first + max_retries + 1)
+                candidates = range(existing + 1, existing + max_retries + 2)
+            elif self.evaluator is None:
+                candidates = (max(existing, 1),)
             else:
                 candidates = range(1, max_retries + 2)
             for attempt in candidates:
