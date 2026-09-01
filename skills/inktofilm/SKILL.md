@@ -129,6 +129,29 @@ missing work is paid for.
   pin every video chain to `settb=1/<fps>` before and after concat when mixing dissolves and hard
   cuts. Trim each clip to its planned length so the title card keeps its full run, and read the
   clip durations from the files rather than assuming them.
+- Write the video prompt as a cinematographer, not as a stage manager. Open with the medium and the
+  physics before any blocking: "photorealistic live-action <genre> film, not animation, not a game
+  cutscene", the lens, where the light comes from, what the air is doing (mist, frost dust, rain),
+  and "physically believable cloth, hair and weight". A prompt that is mostly blocking and
+  prohibitions ("stays seated", "nobody moves from their place", "same face as the first frame")
+  returns a photograph that twitches: the model animates what it is told to animate and freezes the
+  rest, and the stillness reads as fake. Name what must stay stable in one clause (one sword, both
+  faces), not in five.
+- Give every action a clock: "within the first half second", "at the midpoint", "in the final
+  second". Untimed action either never arrives or is spent on a wind-up, and a shot with no timed
+  beat comes back as a slow push-in on people holding a pose.
+- Choose text-to-video for wide, landscape, action and scale shots. The model owns the motion and the
+  clip reads as filmed. Reserve image-to-video for shots whose face or exact composition must match a
+  still, and front-load the action there too. A polished still is a liability for motion: the tidier
+  the photograph, the more the clip looks like a photograph waking up. When the user prefers
+  convincing motion over an identical face, say so in the plan: leave `still_prompt` and
+  `reference_prompt` empty and carry identity in each character's `description`, which the production
+  prompt restates verbatim on every shot that lists the character.
+- Judge the encode by the source, not by the file size. Compare a raw provider clip's bitrate with the
+  assembled film's: a much lower final number under the same encoder settings means the clips were
+  static, not that the encode was lossy. Assemble at CRF 16 or lower with `-preset slow`, keep the
+  provider's frame size (no rescale of a 768P clip in either direction), and say so in the delivery
+  note when the user asks whether quality was lost in post.
 
 - Expand a short idea into a screenplay, character and world bible, and a sequence of independently
   generatable shots. Preserve the user's named characters, dialogue, visual rules, and ending.
