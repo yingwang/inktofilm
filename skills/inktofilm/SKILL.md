@@ -57,6 +57,9 @@ default video generator, while respecting any model the user explicitly chooses.
   eyeline and action matches, restrained dissolves or light/occlusion transitions, and dialogue,
   ambience, or effects that cross the cut. Preserve intentional hard cuts when they provide dramatic
   punctuation. Normalize resolution, frame rate, codecs, audio format, and duration.
+- Verify the finished container rather than assuming a successful encode is complete. Confirm the
+  audio and video streams both span the intended duration, decode the full file, and scan the final
+  mix for unintended long silence; distinguish deliberate quiet from a truncated audio stream.
 
 For the current H3 workflow, use InkToFilm's provider and production APIs rather than recreating fal
 requests ad hoc. Keep generated prompts, reports, and media inside the user's chosen project. Treat

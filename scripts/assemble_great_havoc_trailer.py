@@ -86,7 +86,17 @@ def audio_filters() -> list[str]:
             f"{pad}{fade_in}{fade_out}volume=0.62,adelay={start_ms}|{start_ms}[a{index}]"
         )
 
-    filters.append("[a0][a1][a2][a3][a4][a5]amix=inputs=6:duration=longest:normalize=0[base]")
+    filters.extend(
+        (
+            # A restrained low resonance carries the final impact beneath the title card. It keeps
+            # the ending spacious without leaving several seconds of accidental digital silence.
+            "aevalsrc='0.075*sin(2*PI*52*t)*exp(-0.55*t)+"
+            "0.025*sin(2*PI*104*t)*exp(-0.9*t)':s=48000:d=5.864,"
+            "aformat=channel_layouts=stereo,adelay=24136|24136[title_tone]",
+            "[a0][a1][a2][a3][a4][a5][title_tone]"
+            "amix=inputs=7:duration=longest:normalize=0[base]",
+        )
+    )
 
     # Dialogue intentionally straddles cuts. Its continuation across the visual boundary creates an
     # audio bridge, so the scene change reads as one dramatic thought rather than a pasted clip.
@@ -102,11 +112,10 @@ def audio_filters() -> list[str]:
             "loudnorm=I=-18:TP=-3:LRA=7,aecho=0.8:0.55:52:0.13,"
             f"adelay={DIALOGUE_STARTS_MS[2]}|{DIALOGUE_STARTS_MS[2]}[d2]",
             "[d0][d1][d2]amix=inputs=3:duration=longest:normalize=0,"
-            "apad=whole_dur=30,atrim=duration=30,asplit=2[dialogue][sidechain]",
-            "[base][sidechain]sidechaincompress=threshold=0.015:ratio=10:"
-            "attack=15:release=320:makeup=1[ducked]",
-            "[ducked][dialogue]amix=inputs=2:duration=first:normalize=0,"
-            "loudnorm=I=-16:LRA=9:TP=-1.5,atrim=duration=30[aout]",
+            "apad=whole_dur=30,atrim=duration=30,asetpts=PTS-STARTPTS[dialogue]",
+            "[base][dialogue]amix=inputs=2:duration=longest:dropout_transition=0:normalize=0,"
+            "apad=whole_dur=30,loudnorm=I=-16:LRA=9:TP=-1.5,atrim=duration=30,"
+            "asetpts=PTS-STARTPTS[aout]",
         )
     )
     return filters
@@ -119,7 +128,7 @@ def probe(path: Path) -> dict:
             "-v",
             "error",
             "-show_entries",
-            "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels",
+            "format=duration:stream=codec_type,codec_name,width,height,sample_rate,channels,duration",
             "-of",
             "json",
             str(path),
@@ -181,10 +190,19 @@ def main() -> None:
     if abs(duration - 30.0) > 0.05:
         raise SystemExit(f"unexpected trailer duration: {duration:.3f}s")
     streams = metadata["streams"]
-    if not any(stream.get("codec_type") == "video" for stream in streams):
+    video_stream = next((stream for stream in streams if stream.get("codec_type") == "video"), None)
+    audio_stream = next((stream for stream in streams if stream.get("codec_type") == "audio"), None)
+    if video_stream is None:
         raise SystemExit("assembled trailer has no video stream")
-    if not any(stream.get("codec_type") == "audio" for stream in streams):
+    if audio_stream is None:
         raise SystemExit("assembled trailer has no audio stream")
+    for label, stream in (("video", video_stream), ("audio", audio_stream)):
+        stream_duration = float(stream.get("duration", 0))
+        if abs(stream_duration - 30.0) > 0.05:
+            raise SystemExit(
+                f"assembled trailer {label} stream has unexpected duration: "
+                f"{stream_duration:.3f}s"
+            )
 
     os.replace(temporary, OUTPUT)
     print(f"assembled {OUTPUT.relative_to(ROOT)} ({duration:.3f}s)")
