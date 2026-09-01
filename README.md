@@ -69,8 +69,9 @@ You give InkToFilm one sentence or a complete screenplay. It handles the rest:
 
 The prompt was simple: make a theatrical, live-action *Journey to the West* trailer with blockbuster
 scale. InkToFilm wrote a five-shot plan, generated the footage with MiniMax H3 Max, repaired the weak
-climax, connected the shots with action, lightning, and sound bridges, added a three-line Mandarin
-dialogue arc, and rendered the title card locally.
+climax, continued one directly connected action from a selected stable frame, connected the other
+shots with lightning and sound bridges, added a separately mixed three-line Mandarin dialogue arc,
+and rendered the title card locally.
 
 <p align="center">
   <a href="examples/great-havoc-in-heaven/great-havoc-in-heaven-trailer.mp4">
@@ -80,7 +81,7 @@ dialogue arc, and rendered the title card locally.
 
 - Finished film: **30 seconds**, **1344×768**, **24 fps**, stereo audio.
 - Quality result: **5 of 5 scenes passed** and **25 of 25 story assertions passed**.
-- Generation cost for the selected shots and targeted retries: **$1.20 on fal**; the three spoken
+- Generation cost for the selected shots and targeted retries: **$2.00 on fal**; the three spoken
   lines cost less than **$0.10**.
 - Public materials: [screenplay](examples/great-havoc-in-heaven/script.md),
   [shot prompts](examples/great-havoc-in-heaven/prompts.md), and

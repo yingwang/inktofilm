@@ -44,15 +44,28 @@ subtitles, logos, watermark, or gore.
 
 ## Shot 3 · One warrior breaks the formation
 
+This is the one selectively continued shot in the trailer. InkToFilm extracted a clean stable frame
+0.43 seconds before the end of Shot 2 and supplied it as the opening image. It did not chain every
+shot: only this action directly continues, while the other scale and location changes remain fresh
+text-to-video generations. A first continuation take spent too long on the wind-up and never reached
+the climax, so the selected take front-loads the launch and demands the shockwave at the midpoint.
+
 ```text
-Photorealistic live-action Chinese mythological war epic. A violent but bloodless five-second
-continuous tracking shot. Use the exact Sun Wukong character bible above. He stamps down and shatters
-the white-jade stair, launches into the sky, and collides head-on with a vast descending formation of
-armored heavenly soldiers, bronze chariots, flying spears, and immense banners. The camera chases
-beside him through the formation as his black-and-gold staff sweeps one clean arc, releasing a golden
-shockwave that parts the entire army and clouds. Coherent martial-arts motion, stable anatomy and
-weapon, strong parallax and readable scale, practical debris, IMAX action cinematography, 35mm
-anamorphic lens. No cuts, text, subtitles, logos, watermark, or gore.
+Begin exactly from the supplied frame without changing the Monkey King's face, fur, crown, dark-gold
+armor, crimson cape, black-and-gold staff, body proportions, lighting, heavenly soldiers, jade
+terrace, or camera axis. This is the next continuous shot, not a new scene. Within the very first
+half second Sun Wukong has already stamped down, shattered the white-jade terrace, and launched
+forward and upward into the heavenly formation; do not linger on the opening pose. The camera
+accelerates alongside him in the same screen direction while flying spears, banners and bronze
+chariots rush past with clear parallax. At the midpoint of the shot he swings the staff through one
+wide, clearly readable arc that releases a bright golden shockwave: the expanding golden wave
+visibly blasts the nearest ranks of armored soldiers, spears and banners outward and tears a clear
+open path through the army, without any blood. In the final second he keeps flying forward through
+the opened gap as golden light, debris and torn banners scatter around him. One continuous
+five-second photorealistic live-action Chinese mythological action shot, physically coherent motion,
+stable anatomy and weapon, 35mm anamorphic IMAX scale. No cut, no transformation, no duplicate
+limbs, no second staff, no text, no subtitles, no logo, no watermark. No spoken dialogue; cinematic
+battle ambience and impact sounds only.
 ```
 
 ## Shot 4 · Colossal transformation

@@ -100,6 +100,39 @@ def test_fal_generator_uses_environment_key_without_persisting_it(tmp_path, monk
     assert "private-test-key" not in json.dumps(captured)
 
 
+def test_fal_generator_can_continue_from_a_stable_frame(tmp_path, monkeypatch):
+    captured = {"uploads": []}
+
+    class FakeClient:
+        @staticmethod
+        def upload_file(path):
+            captured["uploads"].append(path)
+            return "https://example.test/stable-frame.jpg"
+
+        @staticmethod
+        def subscribe(model, arguments):
+            captured["model"] = model
+            captured["arguments"] = arguments
+            return {"video": {"url": "https://example.test/continuation.mp4"}}
+
+    monkeypatch.setenv("FAL_KEY", "private-test-key")
+    stable_frame = tmp_path / "stable-frame.jpg"
+    stable_frame.write_bytes(b"jpeg")
+    destination = tmp_path / "continuation.mp4"
+    generator = FalMiniMaxGenerator(
+        client=FakeClient(),
+        downloader=lambda url: b"continued-video",
+    )
+    generator.generate_from_image("launch into battle", 5, stable_frame, destination)
+
+    assert destination.read_bytes() == b"continued-video"
+    assert captured["model"] == "minimax/h3-max/image-to-video"
+    assert captured["uploads"] == [stable_frame]
+    assert captured["arguments"]["image_url"].endswith("stable-frame.jpg")
+    assert captured["arguments"]["duration"] == 5
+    assert "private-test-key" not in json.dumps(captured, default=str)
+
+
 def test_command_planner_and_video_generator_use_explicit_json_protocol(tmp_path, monkeypatch):
     captured = {}
 

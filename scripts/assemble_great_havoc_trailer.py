@@ -16,7 +16,7 @@ OUTPUT = EXAMPLE / "great-havoc-in-heaven-trailer.mp4"
 VIDEOS = (
     GENERATED / "shot-01-celestial-armada-768p.mp4",
     GENERATED / "shot-02-monkey-king-looks-up.mp4",
-    GENERATED / "shot-03-breaks-formation.mp4",
+    GENERATED / "shot-03-breaks-formation-i2v.mp4",
     GENERATED / "shot-04-colossal-transformation.mp4",
     GENERATED / "shot-05-south-heavenly-gate-falls-final.mp4",
     GENERATED / "title-card.mp4",

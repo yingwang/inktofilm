@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "suite": "great-havoc-in-heaven-theatrical-trailer",
-  "generated_at": "2026-09-01T16:28:15.372449+00:00",
+  "generated_at": "2026-09-01T17:50:09.275757+00:00",
   "status": "pass",
   "summary": {
     "pass": 5,
@@ -18,7 +18,7 @@
       "prompt": "A live-action IMAX-scale aerial shot races through clouds over hundreds of bronze celestial warships and endless heavenly soldiers toward the South Heavenly Gate, where Sun Wukong stands alone.",
       "status": "pass",
       "probe": {
-        "path": "generated/shot-01-celestial-armada-768p.mp4",
+        "path": "/Users/ying/claude/vidspec/examples/great-havoc-in-heaven/generated/shot-01-celestial-armada-768p.mp4",
         "duration_seconds": 5.166667,
         "width": 1344,
         "height": 768,
@@ -354,7 +354,7 @@
       "prompt": "A low-angle hero reveal orbits Sun Wukong on shattered jade as his red cape lashes, his staff throws sparks, and a vast heavenly army aims spears behind him under storm clouds.",
       "status": "pass",
       "probe": {
-        "path": "generated/shot-02-monkey-king-looks-up.mp4",
+        "path": "/Users/ying/claude/vidspec/examples/great-havoc-in-heaven/generated/shot-02-monkey-king-looks-up.mp4",
         "duration_seconds": 5.166667,
         "width": 1344,
         "height": 768,
@@ -680,11 +680,11 @@
     },
     {
       "id": "wukong-breaks-formation",
-      "video": "generated/shot-03-breaks-formation.mp4",
-      "prompt": "Sun Wukong launches into a vast descending heavenly formation, races among bronze chariots, spears, and banners, then parts the army and clouds with one golden staff shockwave.",
+      "video": "generated/shot-03-breaks-formation-i2v.mp4",
+      "prompt": "Continue from the selected stable frame near the end of the previous shot. The same Sun Wukong crouches, shatters the jade terrace, launches in the same screen direction through soldiers and bronze chariots, then breaks the formation with one golden staff shockwave.",
       "status": "pass",
       "probe": {
-        "path": "generated/shot-03-breaks-formation.mp4",
+        "path": "/Users/ying/claude/vidspec/examples/great-havoc-in-heaven/generated/shot-03-breaks-formation-i2v.mp4",
         "duration_seconds": 5.166667,
         "width": 1344,
         "height": 768,
@@ -693,7 +693,7 @@
         "pixel_format": "yuv420p",
         "frame_count": 124,
         "has_audio": true,
-        "size_bytes": 6890438
+        "size_bytes": 7263935
       },
       "findings": [
         {
@@ -798,235 +798,193 @@
         {
           "check": "semantic:airborne-wukong",
           "status": "pass",
-          "summary": "A consistent red-caped armored figure is airborne with one long staff.",
+          "summary": "The armored monkey warrior is clearly airborne in four of five frames, attacking with one stable staff.",
           "observed": {
-            "score": 0.81
+            "score": 0.86
           },
           "expected": {
             "min_score": 0.72
           },
           "intervals": [],
-          "details": "OpenAI Codex visual QA judge · Frames 1 through 5 show a visually consistent red-caped, armored warrior above clouds or moving through the aerial formation. A single long staff is clearly visible in frames 1, 2, 4, and 5. The figure appears monkey-like most clearly in frame 1, but exact identity and continuous staff stability cannot be proven from sparse samples.",
+          "details": "Claude visual QA judge · Frames 2 through 5 show the same crowned, gold-armored simian warrior in flight holding a single straight staff; the crimson cape is clearly visible in the first three frames but is obscured by the shockwave lighting in the last two.",
           "evidence": [
             {
-              "timestamp_seconds": 0.5167,
-              "description": "Red-caped armored, monkey-like warrior crouches above clouds with one long staff across the body.",
-              "frame_index": 1,
-              "image": "assets/wukong-breaks-formation/frame-01.jpg"
-            },
-            {
               "timestamp_seconds": 1.55,
-              "description": "The red-caped figure is visibly airborne, with a thin staff projecting upward behind it.",
+              "description": "He launches airborne between two bronze chariots, cape and staff visible.",
               "frame_index": 2,
               "image": "assets/wukong-breaks-formation/frame-02.jpg"
             },
             {
               "timestamp_seconds": 3.6167,
-              "description": "The airborne red-caped figure holds a long staff horizontally inside a golden impact sphere.",
+              "description": "Mid-air staff sweep at the center of the golden shockwave.",
               "frame_index": 4,
               "image": "assets/wukong-breaks-formation/frame-04.jpg"
             },
             {
               "timestamp_seconds": 4.65,
-              "description": "The same visually consistent figure remains airborne at the center of the parted formation.",
+              "description": "He flies through the opened gap with the single staff held level.",
               "frame_index": 5,
               "image": "assets/wukong-breaks-formation/frame-05.jpg"
             }
           ],
           "provenance": {
-            "model": "gpt-5",
+            "model": "claude-fable-5",
             "revision": "2026-09-01",
             "judge_prompt_hash": "not-applicable",
-            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
-            "evaluator": "OpenAI Codex visual QA judge",
+            "sampling_policy": "Inspected all five evenly spaced center frames of the 5.18-second continuation take; scored only what is visible in the sampled frames.",
+            "evaluator": "Claude visual QA judge",
             "vidspec_sampling": "5 evenly spaced center frames"
           }
         },
         {
           "check": "semantic:heavenly-formation",
           "status": "pass",
-          "summary": "A large aerial formation of chariots, armored figures, weapons, and banners is readable.",
+          "summary": "Bronze chariots, banner ranks, and armored soldiers form a readable army around the charge.",
           "observed": {
-            "score": 0.86
+            "score": 0.85
           },
           "expected": {
             "min_score": 0.76
           },
           "intervals": [],
-          "details": "OpenAI Codex visual QA judge · Frames 3 and 5 visibly establish numerous bronze-toned wheeled chariots arranged across a cloud battlefield, with armored occupants, projecting spear-like weapons, and many red, white, and gold banners. Individual soldiers are small and partially obscured, but the overall military formation is clear.",
+          "details": "Claude visual QA judge · Frames 2 and 3 frame the charge between two bronze chariots with yellow banners and ranked soldiers on the causeway; frame 4 shows deep ranks of armored soldiers on both sides; colossal guardian statues anchor the background in frame 1.",
           "evidence": [
             {
-              "timestamp_seconds": 2.5833,
-              "description": "The camera looks between large bronze chariots toward armored figures, spear-like weapons, and repeated military banners.",
-              "frame_index": 3,
-              "image": "assets/wukong-breaks-formation/frame-03.jpg"
+              "timestamp_seconds": 0.5167,
+              "description": "Soldier ranks flank the shattered terrace beneath colossal statues.",
+              "frame_index": 1,
+              "image": "assets/wukong-breaks-formation/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 1.55,
+              "description": "Two bronze chariots with banners frame the launch.",
+              "frame_index": 2,
+              "image": "assets/wukong-breaks-formation/frame-02.jpg"
             },
             {
               "timestamp_seconds": 3.6167,
-              "description": "Chariots and armored occupants flank the golden impact at both sides.",
+              "description": "Ranked soldiers with spears fill both edges of the frame.",
               "frame_index": 4,
               "image": "assets/wukong-breaks-formation/frame-04.jpg"
-            },
-            {
-              "timestamp_seconds": 4.65,
-              "description": "A wide view shows dozens of aerial chariots and banners distributed around the cloud battlefield.",
-              "frame_index": 5,
-              "image": "assets/wukong-breaks-formation/frame-05.jpg"
             }
           ],
           "provenance": {
-            "model": "gpt-5",
+            "model": "claude-fable-5",
             "revision": "2026-09-01",
             "judge_prompt_hash": "not-applicable",
-            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
-            "evaluator": "OpenAI Codex visual QA judge",
+            "sampling_policy": "Inspected all five evenly spaced center frames of the 5.18-second continuation take; scored only what is visible in the sampled frames.",
+            "evaluator": "Claude visual QA judge",
             "vidspec_sampling": "5 evenly spaced center frames"
           }
         },
         {
           "check": "semantic:formation-broken",
           "status": "pass",
-          "summary": "A clear golden shockwave visibly opens and scatters the formation.",
+          "summary": "A bright golden shockwave visibly blasts the nearest ranks outward and opens a path.",
           "observed": {
-            "score": 0.91
+            "score": 0.93
           },
           "expected": {
             "min_score": 0.68
           },
           "intervals": [],
-          "details": "OpenAI Codex visual QA judge · Frame 4 shows a large luminous golden spherical shockwave centered on the staff-bearing figure, with surrounding units pushed toward its perimeter. Frame 5 then shows a broad open corridor through the clouds and army, with chariots displaced around the edges. The sampled progression strongly supports a formation-breaking impact, although exact object trajectories are not directly measurable.",
+          "details": "Claude visual QA judge · Frame 4 shows an expanding golden blast throwing soldiers and banners outward from the staff sweep; frame 5 shows him flying through the resulting open corridor with radial golden streaks and scattered debris.",
           "evidence": [
             {
-              "timestamp_seconds": 2.5833,
-              "description": "Before the impact, chariots and weapons form a dense corridor around the approaching figure.",
-              "frame_index": 3,
-              "image": "assets/wukong-breaks-formation/frame-03.jpg"
-            },
-            {
               "timestamp_seconds": 3.6167,
-              "description": "A bright golden spherical shockwave expands around the central figure and staff.",
+              "description": "Golden shockwave erupts from the staff arc, scattering soldiers and banners.",
               "frame_index": 4,
               "image": "assets/wukong-breaks-formation/frame-04.jpg"
             },
             {
               "timestamp_seconds": 4.65,
-              "description": "The formation and cloud mass are visibly parted into a wide opening, with chariots scattered around the perimeter.",
+              "description": "An opened path with radial light and flying debris after the blast.",
               "frame_index": 5,
               "image": "assets/wukong-breaks-formation/frame-05.jpg"
             }
           ],
           "provenance": {
-            "model": "gpt-5",
+            "model": "claude-fable-5",
             "revision": "2026-09-01",
             "judge_prompt_hash": "not-applicable",
-            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
-            "evaluator": "OpenAI Codex visual QA judge",
+            "sampling_policy": "Inspected all five evenly spaced center frames of the 5.18-second continuation take; scored only what is visible in the sampled frames.",
+            "evaluator": "Claude visual QA judge",
             "vidspec_sampling": "5 evenly spaced center frames"
           }
         },
         {
           "check": "semantic:coherent-action",
           "status": "pass",
-          "summary": "The samples read as one coherent aerial action beat, with some motion-blur ambiguity.",
+          "summary": "The crouch, launch, charge, and shockwave read as one continuous forward action.",
           "observed": {
-            "score": 0.78
+            "score": 0.8
           },
           "expected": {
             "min_score": 0.68
           },
           "intervals": [],
-          "details": "OpenAI Codex visual QA judge · The sequence progresses legibly from launch, to entry between chariots, to a central golden impact, and finally to a wide parted formation. The red cape, staff, chariots, and forward camera direction remain broadly consistent. Frames 2 and 3 contain heavy blur and distant anatomy, so continuous motion and fine object integrity cannot be fully verified from these still samples.",
+          "details": "Claude visual QA judge · Anatomy, the single staff, and the forward camera axis stay consistent across all five frames; heavy motion blur on chariot wheels and banners is stylistically plausible, though the blur in frame 3 briefly softens limb detail.",
           "evidence": [
             {
               "timestamp_seconds": 0.5167,
-              "description": "The warrior, cape, armor, and staff are clearly readable at the start of the action.",
+              "description": "Crouched launch pose on the shattered jade terrace.",
               "frame_index": 1,
               "image": "assets/wukong-breaks-formation/frame-01.jpg"
             },
             {
-              "timestamp_seconds": 1.55,
-              "description": "The same color silhouette continues forward through clouds, though blur obscures anatomy.",
-              "frame_index": 2,
-              "image": "assets/wukong-breaks-formation/frame-02.jpg"
-            },
-            {
               "timestamp_seconds": 2.5833,
-              "description": "A forward-looking corridor between chariots maintains the direction of travel.",
+              "description": "Forward charge along the causeway with consistent screen direction.",
               "frame_index": 3,
               "image": "assets/wukong-breaks-formation/frame-03.jpg"
             },
             {
               "timestamp_seconds": 3.6167,
-              "description": "The central figure and horizontal staff remain readable during the impact.",
+              "description": "The staff sweep connects the charge to the blast without a visible cut.",
               "frame_index": 4,
               "image": "assets/wukong-breaks-formation/frame-04.jpg"
-            },
-            {
-              "timestamp_seconds": 4.65,
-              "description": "The wide aftermath preserves the figure at center and the displaced formation around it.",
-              "frame_index": 5,
-              "image": "assets/wukong-breaks-formation/frame-05.jpg"
             }
           ],
           "provenance": {
-            "model": "gpt-5",
+            "model": "claude-fable-5",
             "revision": "2026-09-01",
             "judge_prompt_hash": "not-applicable",
-            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
-            "evaluator": "OpenAI Codex visual QA judge",
+            "sampling_policy": "Inspected all five evenly spaced center frames of the 5.18-second continuation take; scored only what is visible in the sampled frames.",
+            "evaluator": "Claude visual QA judge",
             "vidspec_sampling": "5 evenly spaced center frames"
           }
         },
         {
           "check": "semantic:no-unwanted-text",
           "status": "pass",
-          "summary": "No unwanted text, branding, watermark, or gore is visible.",
+          "summary": "No subtitle, logo, watermark, malformed text, or gore appears in any sampled frame.",
           "observed": {
-            "score": 1.0
+            "score": 0.96
           },
           "expected": {
             "min_score": 0.95
           },
           "intervals": [],
-          "details": "OpenAI Codex visual QA judge · None of the five supplied frames contains subtitles, logos, watermarks, readable malformed text, or gore. Banner emblems are non-textual decorative symbols.",
+          "details": "Claude visual QA judge · Banner emblems are abstract insignia rather than legible text; no overlay text, watermark, or blood is visible in any of the five frames.",
           "evidence": [
             {
-              "timestamp_seconds": 0.5167,
-              "description": "No text, logo, watermark, or gore is visible.",
-              "frame_index": 1,
-              "image": "assets/wukong-breaks-formation/frame-01.jpg"
-            },
-            {
               "timestamp_seconds": 1.55,
-              "description": "No text, logo, watermark, or gore is visible.",
+              "description": "Banners carry abstract emblems only; no overlay text.",
               "frame_index": 2,
               "image": "assets/wukong-breaks-formation/frame-02.jpg"
             },
             {
-              "timestamp_seconds": 2.5833,
-              "description": "Banners contain decorative circular emblems but no readable text; no gore is visible.",
-              "frame_index": 3,
-              "image": "assets/wukong-breaks-formation/frame-03.jpg"
-            },
-            {
               "timestamp_seconds": 3.6167,
-              "description": "No text, logo, watermark, or gore is visible.",
+              "description": "The blast scatters soldiers without any visible gore.",
               "frame_index": 4,
               "image": "assets/wukong-breaks-formation/frame-04.jpg"
-            },
-            {
-              "timestamp_seconds": 4.65,
-              "description": "No text, logo, watermark, or gore is visible.",
-              "frame_index": 5,
-              "image": "assets/wukong-breaks-formation/frame-05.jpg"
             }
           ],
           "provenance": {
-            "model": "gpt-5",
+            "model": "claude-fable-5",
             "revision": "2026-09-01",
             "judge_prompt_hash": "not-applicable",
-            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
-            "evaluator": "OpenAI Codex visual QA judge",
+            "sampling_policy": "Inspected all five evenly spaced center frames of the 5.18-second continuation take; scored only what is visible in the sampled frames.",
+            "evaluator": "Claude visual QA judge",
             "vidspec_sampling": "5 evenly spaced center frames"
           }
         }
@@ -1038,7 +996,7 @@
       "prompt": "A mountain-sized Sun Wukong rises through thunderclouds over tiny palace complexes and circling celestial warships, then swings a continent-long staff across the sky.",
       "status": "pass",
       "probe": {
-        "path": "generated/shot-04-colossal-transformation.mp4",
+        "path": "/Users/ying/claude/vidspec/examples/great-havoc-in-heaven/generated/shot-04-colossal-transformation.mp4",
         "duration_seconds": 5.166667,
         "width": 1344,
         "height": 768,
@@ -1380,7 +1338,7 @@
       "prompt": "Sun Wukong strikes the colossal South Heavenly Gate; jade palaces and bronze towers fracture in a golden shockwave before the camera resolves on him against the burning ruins.",
       "status": "pass",
       "probe": {
-        "path": "generated/shot-05-south-heavenly-gate-falls-final.mp4",
+        "path": "/Users/ying/claude/vidspec/examples/great-havoc-in-heaven/generated/shot-05-south-heavenly-gate-falls-final.mp4",
         "duration_seconds": 5.0,
         "width": 1344,
         "height": 768,

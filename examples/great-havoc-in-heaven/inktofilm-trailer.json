@@ -49,8 +49,8 @@
     },
     {
       "id": "wukong-breaks-formation",
-      "video": "generated/shot-03-breaks-formation.mp4",
-      "prompt": "Sun Wukong launches into a vast descending heavenly formation, races among bronze chariots, spears, and banners, then parts the army and clouds with one golden staff shockwave.",
+      "video": "generated/shot-03-breaks-formation-i2v.mp4",
+      "prompt": "Continue from the selected stable frame near the end of the previous shot. The same Sun Wukong crouches, shatters the jade terrace, launches in the same screen direction through soldiers and bronze chariots, then breaks the formation with one golden staff shockwave.",
       "expect": {
         "duration_seconds": {"min": 5.0, "max": 5.5},
         "resolution": {"min_width": 1200, "min_height": 680},

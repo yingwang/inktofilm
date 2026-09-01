@@ -124,11 +124,13 @@ class FalMiniMaxGenerator:
     def __init__(
         self,
         model: str = "minimax/h3-max/text-to-video",
+        image_model: str = "minimax/h3-max/image-to-video",
         resolution: str = "768P",
         client: Any = None,
         downloader: Download = _download,
     ):
         self.model = model
+        self.image_model = image_model
         self.resolution = resolution
         self._client = client
         self.downloader = downloader
@@ -165,6 +167,47 @@ class FalMiniMaxGenerator:
             result = client.subscribe(self.model, arguments=arguments)
         except Exception as exc:
             raise ProviderError(f"fal MiniMax generation failed: {exc}") from exc
+        video = result.get("video") if isinstance(result, dict) else None
+        url = video.get("url") if isinstance(video, dict) else None
+        if not isinstance(url, str) or not url:
+            raise ProviderError("fal MiniMax result did not contain video.url")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(self.downloader(url))
+        if not destination.is_file() or destination.stat().st_size == 0:
+            raise ProviderError("fal MiniMax returned an empty video")
+        return destination
+
+    def generate_from_image(
+        self,
+        prompt: str,
+        duration_seconds: int,
+        start_image: Path,
+        destination: Path,
+        end_image: Optional[Path] = None,
+    ) -> Path:
+        """Generate a continuation using a still as the exact first-frame condition."""
+        if not os.environ.get("FAL_KEY"):
+            raise ProviderError("FAL_KEY is required for the fal MiniMax provider")
+        if not start_image.is_file():
+            raise ProviderError(f"Start image does not exist: {start_image}")
+        if end_image is not None and not end_image.is_file():
+            raise ProviderError(f"End image does not exist: {end_image}")
+
+        client = self._load_client()
+        arguments: Dict[str, Any] = {
+            "prompt": prompt,
+            "duration": duration_seconds,
+            "resolution": self.resolution,
+            "prompt_expansion_mode": "balanced",
+            "enable_safety_checker": True,
+            "image_url": client.upload_file(start_image),
+        }
+        if end_image is not None:
+            arguments["end_image_url"] = client.upload_file(end_image)
+        try:
+            result = client.subscribe(self.image_model, arguments=arguments)
+        except Exception as exc:
+            raise ProviderError(f"fal MiniMax image generation failed: {exc}") from exc
         video = result.get("video") if isinstance(result, dict) else None
         url = video.get("url") if isinstance(video, dict) else None
         if not isinstance(url, str) or not url:
