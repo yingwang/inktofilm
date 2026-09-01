@@ -1,0 +1,48 @@
+{
+  "name": "great-havoc-in-heaven-trailer-shot-01",
+  "cases": [
+    {
+      "id": "celestial-armada-establishing",
+      "video": "generated/shot-01-celestial-armada.mp4",
+      "prompt": "A live-action IMAX-scale aerial shot races through clouds over hundreds of bronze celestial warships and endless heavenly soldiers toward the South Heavenly Gate, where Sun Wukong stands alone.",
+      "expect": {
+        "duration_seconds": {"min": 5.0, "max": 5.5},
+        "resolution": {"min_width": 800, "min_height": 450},
+        "fps": {"min": 23.9},
+        "codecs": ["h264"],
+        "black_frames": {"max_total_ratio": 0.02},
+        "freezes": {"max_total_ratio": 0.05}
+      },
+      "semantic": {
+        "sample_frames": 5,
+        "assertions": [
+          {
+            "id": "celestial-armada",
+            "description": "A large celestial invasion force with multiple bronze warships, soldiers, and war banners is visible at monumental scale.",
+            "min_score": 0.78
+          },
+          {
+            "id": "south-heavenly-gate",
+            "description": "A colossal traditional Chinese heavenly gate and palace complex dominates the destination of the camera move.",
+            "min_score": 0.8
+          },
+          {
+            "id": "lone-wukong",
+            "description": "One lone armored monkey warrior with a crimson cape and long staff stands on the white-jade stairs facing the army.",
+            "min_score": 0.72
+          },
+          {
+            "id": "scale-and-depth",
+            "description": "The shot has readable foreground, middle ground, and deep background with convincing blockbuster scale rather than undifferentiated particles.",
+            "min_score": 0.78
+          },
+          {
+            "id": "no-text",
+            "description": "No subtitle, logo, watermark, or malformed text is visible.",
+            "min_score": 0.95
+          }
+        ]
+      }
+    }
+  ]
+}

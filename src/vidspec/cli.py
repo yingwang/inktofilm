@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
+import os
+import shutil
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -14,8 +17,17 @@ from vidspec.config import ConfigurationError, load_suite
 from vidspec.engine import run_suite
 from vidspec.media import MediaToolError, probe_video
 from vidspec.models import STATUS_ORDER
+from vidspec.produce import ProductionOrchestrator
+from vidspec.production import CodexProductionPlanner, CommandProductionPlanner, ProductionError
+from vidspec.providers import (
+    CodexCLIProvider,
+    CommandVideoGenerator,
+    FalMiniMaxGenerator,
+    ProviderError,
+)
 from vidspec.report import write_html, write_json
 from vidspec.semantic import (
+    CodexSemanticEvaluator,
     CommandSemanticEvaluator,
     JsonSemanticEvaluator,
     SemanticEvaluationError,
@@ -63,6 +75,11 @@ def _parser() -> argparse.ArgumentParser:
         "--semantic-command",
         help="opt in to an evaluator command that reads a JSON request from stdin",
     )
+    semantic.add_argument(
+        "--semantic-codex",
+        action="store_true",
+        help="judge sampled frames with the locally authenticated Codex CLI",
+    )
     run.add_argument(
         "--semantic-timeout",
         type=float,
@@ -80,6 +97,65 @@ def _parser() -> argparse.ArgumentParser:
     compare.add_argument("baseline")
     compare.add_argument("candidate")
     compare.add_argument("--output", "-o", default="reports/comparison")
+
+    produce = commands.add_parser(
+        "produce",
+        help="turn a screenplay into a planned, generated, judged, and edited short film",
+    )
+    produce.add_argument("script", help="Markdown or text screenplay")
+    produce.add_argument("--output", "-o", default="productions/latest")
+    produce.add_argument(
+        "--plan-only",
+        action="store_true",
+        help="create script.md, plan.json, and manifest.json without spending video credits",
+    )
+    produce.add_argument(
+        "--max-retries",
+        type=int,
+        default=1,
+        help="regenerate a shot after failed QA (default: 1)",
+    )
+    produce.add_argument(
+        "--codex-model",
+        help="optional model override for the authenticated Codex CLI",
+    )
+    produce.add_argument(
+        "--codex-timeout",
+        type=float,
+        default=600.0,
+        help="timeout in seconds for each Codex planning or judging request",
+    )
+    produce.add_argument(
+        "--planner-command",
+        help="BYOM planner command: read JSON from stdin and return a production plan",
+    )
+    produce.add_argument(
+        "--judge-command",
+        help="BYOM semantic judge command using VidSpec's JSON evaluator protocol",
+    )
+    produce.add_argument(
+        "--video-command",
+        help="BYOM video command: read JSON from stdin and write the requested destination",
+    )
+    produce.add_argument(
+        "--video-timeout",
+        type=float,
+        default=1800.0,
+        help="timeout in seconds for each --video-command request",
+    )
+    produce.add_argument(
+        "--video-model",
+        default="minimax/h3-max/text-to-video",
+        help="fal model endpoint (default: MiniMax H3 Max text-to-video)",
+    )
+    produce.add_argument(
+        "--resolution",
+        choices=("480P", "768P"),
+        default="768P",
+        help="native MiniMax generation resolution",
+    )
+
+    commands.add_parser("doctor", help="check local tools and default provider credentials")
     return parser
 
 
@@ -110,6 +186,10 @@ def _run(args: argparse.Namespace) -> int:
                 args.semantic_command,
                 timeout_seconds=args.semantic_timeout,
             )
+        elif args.semantic_codex:
+            semantic_evaluator = CodexSemanticEvaluator(
+                CodexCLIProvider(timeout_seconds=args.semantic_timeout)
+            )
         report = run_suite(
             suite,
             semantic_evaluator=semantic_evaluator,
@@ -130,6 +210,72 @@ def _run(args: argparse.Namespace) -> int:
         print("Regressions: {0}".format(result["regressions"]))
         print(f"Report: {html_path.resolve()}")
         return int(result["regressions"] > 0)
+
+    if args.command == "doctor":
+        checks = {
+            "codex CLI": shutil.which("codex") is not None,
+            "ffmpeg": shutil.which("ffmpeg") is not None,
+            "ffprobe": shutil.which("ffprobe") is not None,
+            "fal-client": importlib.util.find_spec("fal_client") is not None,
+            "FAL_KEY": bool(os.environ.get("FAL_KEY")),
+        }
+        for name, ready in checks.items():
+            print(f"{'ready' if ready else 'missing':7} {name}")
+        return int(not all(checks.values()))
+
+    if args.command == "produce":
+        script_path = Path(args.script).resolve()
+        script = script_path.read_text(encoding="utf-8")
+        codex = CodexCLIProvider(
+            model=args.codex_model,
+            timeout_seconds=args.codex_timeout,
+        )
+        planner = (
+            CommandProductionPlanner.from_string(
+                args.planner_command,
+                timeout_seconds=args.codex_timeout,
+            )
+            if args.planner_command
+            else CodexProductionPlanner(codex)
+        )
+        generator = None
+        evaluator = None
+        if not args.plan_only:
+            generator = (
+                CommandVideoGenerator.from_string(
+                    args.video_command,
+                    timeout_seconds=args.video_timeout,
+                )
+                if args.video_command
+                else FalMiniMaxGenerator(
+                    model=args.video_model,
+                    resolution=args.resolution,
+                )
+            )
+            evaluator = (
+                CommandSemanticEvaluator.from_string(
+                    args.judge_command,
+                    timeout_seconds=args.codex_timeout,
+                )
+                if args.judge_command
+                else CodexSemanticEvaluator(codex)
+            )
+        result = ProductionOrchestrator(
+            planner=planner,
+            generator=generator,
+            evaluator=evaluator,
+        ).produce(
+            script,
+            Path(args.output),
+            max_retries=args.max_retries,
+            plan_only=args.plan_only,
+        )
+        print(f"{result.plan.title}: {'PLANNED' if args.plan_only else result.report.status.upper()}")
+        print(f"Manifest: {result.manifest}")
+        if result.final_video is not None:
+            print(f"Film: {result.final_video}")
+            print(f"Report: {result.output_dir / 'index.html'}")
+        return 0 if result.report is None else int(result.report.status in {"fail", "error"})
     return 2
 
 
@@ -140,6 +286,8 @@ def main(argv: Optional[List[str]] = None) -> None:
         ConfigurationError,
         ComparisonError,
         MediaToolError,
+        ProductionError,
+        ProviderError,
         SemanticEvaluationError,
         OSError,
         ValueError,

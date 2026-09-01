@@ -1,0 +1,73 @@
+{
+  "cases": {
+    "celestial-armada-establishing": {
+      "evaluator": "OpenAI Codex visual QA judge",
+      "provenance": {
+        "model": "gpt-5",
+        "revision": "2026-09-01",
+        "judge_prompt_hash": "not-computed",
+        "sampling_policy": "Five evenly spaced frames across a 5.18-second video; visible evidence only."
+      },
+      "assertions": [
+        {
+          "id": "celestial-armada",
+          "score": 0.86,
+          "summary": "A large celestial formation is clearly visible, though only a few ships are individually readable.",
+          "rationale": "Multiple ornate ships, dense soldier ranks, and many dark-red banners establish a large invasion force; the number of clearly readable ships is lower than the prompt's hundreds.",
+          "evidence": [
+            {"frame_index": 3, "description": "Large ships flank dense soldiers and banners."},
+            {"frame_index": 4, "description": "Soldier formations extend down both sides of the jade stairs."},
+            {"frame_index": 5, "description": "Deep ranks, banners, and distant ships remain visible behind the hero."}
+          ]
+        },
+        {
+          "id": "south-heavenly-gate",
+          "score": 0.94,
+          "summary": "A colossal Chinese heavenly gate and palace complex dominate the camera destination.",
+          "rationale": "Tiered eaves, a monumental central opening, and connected palaces remain centered and grow throughout the forward camera move.",
+          "evidence": [
+            {"frame_index": 2, "description": "The central tiered gate first emerges clearly between ships."},
+            {"frame_index": 3, "description": "The gate and palace wings anchor the deep background."},
+            {"frame_index": 4, "description": "The enlarged gate dominates the upper frame."},
+            {"frame_index": 5, "description": "The palace complex remains monumental behind the hero."}
+          ]
+        },
+        {
+          "id": "lone-wukong",
+          "score": 0.79,
+          "summary": "A lone armored monkey warrior, red cape, and long staff are visible; his facing direction is ambiguous.",
+          "rationale": "Exactly one prominent golden-furred warrior stands on the jade stair with red cape and staff, but the army appears behind him in the final sample.",
+          "evidence": [
+            {"frame_index": 4, "description": "One central figure stands at the top of the stair with a red cape and long weapon."},
+            {"frame_index": 5, "description": "The closer view shows fur, armor, crimson cape, and staff."}
+          ]
+        },
+        {
+          "id": "scale-and-depth",
+          "score": 0.9,
+          "summary": "Foreground, middle ground, and deep background create convincing blockbuster scale.",
+          "rationale": "Ships and figures frame the foreground, cloud stairs and formations occupy the middle ground, and the gate fills the deep background during a clear forward move.",
+          "evidence": [
+            {"frame_index": 2, "description": "Foreground ships frame the distant gate through cloud depth."},
+            {"frame_index": 3, "description": "Ships, stairs, troops, and gate form several readable spatial layers."},
+            {"frame_index": 4, "description": "Hero, formations, cloud banks, and palaces retain scale separation."},
+            {"frame_index": 5, "description": "Hero close foreground, army middle ground, and gate background remain readable."}
+          ]
+        },
+        {
+          "id": "no-text",
+          "score": 1.0,
+          "summary": "No text or graphic mark is visible in any sampled frame.",
+          "rationale": "The five supplied samples contain no subtitle, title, logo, watermark, or malformed text.",
+          "evidence": [
+            {"frame_index": 1, "description": "No text is visible in the opening cloud frame."},
+            {"frame_index": 2, "description": "No text is visible among ships and gate."},
+            {"frame_index": 3, "description": "No text is visible in the army establishing frame."},
+            {"frame_index": 4, "description": "No text is visible around the hero and stairs."},
+            {"frame_index": 5, "description": "No subtitle, logo, or watermark is visible in the hero frame."}
+          ]
+        }
+      ]
+    }
+  }
+}

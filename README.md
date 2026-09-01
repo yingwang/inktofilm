@@ -5,8 +5,8 @@
 <h1 align="center">VidSpec</h1>
 
 <p align="center">
-  <strong>Unit tests and visual regression reports for generated video.</strong><br>
-  Turn prompts and videos into repeatable checks, localized evidence, and CI decisions.
+  <strong>From screenplay to tested short film.</strong><br>
+  Plan, generate, judge, retry, edit, and regression-test AI video with inspectable evidence.
 </p>
 
 <p align="center">
@@ -25,6 +25,9 @@ sequence. A leaderboard score does not show where the failure began.
 
 VidSpec treats generated video like software:
 
+- turn one screenplay into a structured, shot-by-shot short-film plan;
+- generate each shot through MiniMax H3 or an explicitly selected custom command;
+- judge failed shots, feed concrete corrections back, and regenerate only what broke;
 - declare expected behavior in a readable JSON suite;
 - run deterministic media checks with FFmpeg;
 - turn prompts into scored semantic assertions without locking into one VLM;
@@ -34,11 +37,102 @@ VidSpec treats generated video like software:
 - return non-zero exit codes when a regression should block CI.
 
 > [!IMPORTANT]
-> VidSpec is an evaluation harness, not a claim that video semantics have been solved. Media checks
-> are deterministic. Semantic assertions are explicitly opt-in and only as reliable as the selected
-> evaluator; every score keeps its rationale, provenance, and cited frames.
+> VidSpec does not claim video semantics have been solved. Media checks are deterministic. Learned
+> judgments are only as reliable as the selected evaluator; every score keeps its rationale,
+> provenance, and cited frames. Production also preserves every shot attempt in a manifest.
 
-## Quick start
+## Produce a short film from one screenplay
+
+<p align="center">
+  <img src="docs/assets/production-pipeline.svg" width="100%" alt="VidSpec plans, generates, verifies, retries, and edits a screenplay into a final film">
+</p>
+
+The default production stack uses an already authenticated
+[Codex CLI](https://learn.chatgpt.com/docs/non-interactive-mode) for structured planning and visual
+judgment, [MiniMax H3 Max on fal](https://fal.ai/models/minimax/h3-max/text-to-video/api) for video,
+and FFmpeg for inspection and editing.
+
+```bash
+python3 -m pip install -e '.[fal]'
+vidspec doctor
+
+# Safe first look: plan the film without invoking a paid video model
+vidspec produce screenplay.md --plan-only -o productions/my-film
+
+# Generate, judge, selectively retry, and edit the film
+export FAL_KEY="..."
+vidspec produce screenplay.md -o productions/my-film
+open productions/my-film/index.html
+```
+
+One command produces `script.md`, `plan.json`, every shot attempt, sampled evidence frames,
+`report.json`, a visual `index.html`, `manifest.json`, and the assembled `final.mp4`. Keys are read
+from the environment and are never written to the production bundle.
+
+Codex planning uses `codex exec --ephemeral` with a read-only sandbox and strict JSON schema. The
+fal client uses the user's own account; fal API generation can consume credits, so `--plan-only`
+exists to make the proposed shots and prompts reviewable before any generation begins.
+
+### Bring your own models
+
+VidSpec never reads provider commands from the screenplay. A user must select them explicitly:
+
+```bash
+vidspec produce screenplay.md \
+  --planner-command "my-llm plan --json" \
+  --video-command "my-video-model generate --json" \
+  --judge-command "my-vlm judge --json" \
+  -o productions/custom
+```
+
+The three adapters exchange documented JSON over stdin/stdout, making local models, another
+subscription CLI, or a private API wrapper usable without changing VidSpec. See
+[provider protocols](docs/provider-protocols.md).
+
+## Production preview · *Great Havoc in Heaven*
+
+The first shot of a public 30-second *Journey to the West* trailer was generated on the free
+[MiniMax H3 Max web tool](https://fal.ai/tools/minimax-h3-max). It is the first real output of the
+screenplay-to-film workflow: public screenplay, reusable character bible, exact generation prompt,
+generated MP4, deterministic media checks, and evidence-backed semantic review.
+
+<p align="center">
+  <a href="examples/great-havoc-in-heaven/generated/shot-01-celestial-armada.mp4">
+    <img src="docs/assets/great-havoc-in-heaven/shot-01-contact.jpg" width="100%" alt="Five sampled frames from the Great Havoc in Heaven celestial-armada shot">
+  </a>
+</p>
+
+<p align="center">
+  <a href="examples/great-havoc-in-heaven/generated/shot-01-celestial-armada.mp4">▶ Watch shot 1 · Celestial army at the gate</a>
+  ·
+  <a href="examples/great-havoc-in-heaven/script.md">Read the 30-second screenplay</a>
+  ·
+  <a href="examples/great-havoc-in-heaven/prompts.md">Inspect all five shot prompts</a>
+</p>
+
+The 5.18-second 832×480 H.264/AAC clip passes decode, duration, resolution, frame-rate, black-frame,
+and freeze checks. A live Codex frame review also passes all declared assertions:
+
+- celestial army and warships: **0.86**;
+- monumental South Heavenly Gate: **0.94**;
+- lone armored Monkey King: **0.79**;
+- readable blockbuster scale and depth: **0.90**;
+- no text, logo, or watermark: **1.00**.
+
+The lower character score records a real limitation instead of hiding it: Wukong is recognizable,
+but his direction relative to the army is ambiguous. Replay the reviewed result deterministically:
+
+```bash
+vidspec run examples/great-havoc-in-heaven/vidspec-shot-01.json \
+  --semantic-results examples/great-havoc-in-heaven/semantic-results-shot-01.json \
+  --output reports/great-havoc-shot-01
+```
+
+This is an intentionally labeled production preview. Four generated shots and the locally rendered
+title card will complete the 30-second trailer; the checked-in first shot remains a reproducible QA
+fixture rather than being replaced by only a finished montage.
+
+## Evaluation quick start
 
 VidSpec has no required Python dependencies. It uses `ffprobe` and `ffmpeg` for media inspection.
 
@@ -100,6 +194,12 @@ command to run a VLM live:
 vidspec run suite.json \
   --semantic-command "my-video-judge --model research-v3" \
   --output reports/semantic
+```
+
+Or use the locally authenticated Codex subscription directly:
+
+```bash
+vidspec run suite.json --semantic-codex --output reports/semantic
 ```
 
 VidSpec samples frames, sends a documented JSON request over stdin, validates the evaluator's JSON
@@ -188,6 +288,8 @@ diff and a human-readable comparison page.
 
 | Command | Purpose |
 | --- | --- |
+| `vidspec produce SCRIPT` | Plan, generate, judge, retry, and edit a short film. |
+| `vidspec doctor` | Check Codex, FFmpeg, fal client, and default credentials without exposing keys. |
 | `vidspec init [path]` | Create a documented starter suite without overwriting files. |
 | `vidspec probe VIDEO` | Print normalized FFprobe metadata as JSON. |
 | `vidspec run SUITE` | Execute media checks and optional semantic assertions; write JSON plus visual HTML. |
@@ -199,12 +301,16 @@ Use `--fail-on never`, `warn`, `fail`, or `error` to control the CI threshold fo
 
 ```mermaid
 flowchart LR
+    S[screenplay.md] --> P[Production planner]
+    P --> G[Video generator]
+    G --> V[Generated videos]
     Q[vidspec.json] --> R[Rule engine]
     V[Generated videos] --> F[FFprobe + FFmpeg]
     F --> FS[Evidence frame sampler]
     F --> R
     FS --> E[Opt-in VLM / human review]
     E -->|scores + cited evidence| R
+    R -->|correction feedback| G
     R --> J[report.json]
     R --> H[Visual timeline report]
     J --> C[Baseline comparison]
@@ -219,7 +325,8 @@ replace them without rewriting the engine.
 
 - It is not another static leaderboard.
 - It does not hide judge prompts, metric provenance, or thresholds.
-- It does not upload videos or invoke a semantic provider by default.
+- `vidspec run` does not upload videos or invoke a semantic provider by default.
+- `vidspec produce` invokes only providers selected on its command line and records the result.
 - It does not let an untrusted suite execute evaluator commands.
 - It does not pretend that one aggregate score explains model behavior.
 

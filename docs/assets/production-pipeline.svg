@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="310" viewBox="0 0 1200 310" role="img" aria-labelledby="title desc">
+  <title id="title">VidSpec screenplay production pipeline</title>
+  <desc id="desc">A screenplay is planned by an LLM, generated shot by shot, evaluated with evidence, selectively retried, and edited into a final film.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1020"/><stop offset="1" stop-color="#15102c"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#5ee6d0"/><stop offset="1" stop-color="#9a8cff"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#657493"/></marker>
+  </defs>
+  <rect width="1200" height="310" rx="26" fill="url(#bg)"/>
+  <path d="M222 142h50M452 142h50M682 142h50M912 142h50" stroke="#657493" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M820 210c0 56-208 56-208 12" fill="none" stroke="#ff6b76" stroke-width="2" stroke-dasharray="7 7" marker-end="url(#arrow)"/>
+  <g font-family="Inter,system-ui,sans-serif">
+    <g transform="translate(42 72)"><rect width="180" height="140" rx="18" fill="#111a2d" stroke="#2a3955"/><text x="22" y="39" fill="#5ee6d0" font-size="13" font-weight="700" letter-spacing="2">INPUT</text><text x="22" y="77" fill="#f6f8ff" font-size="23" font-weight="750">Screenplay</text><text x="22" y="107" fill="#98a5bd" font-size="14">one Markdown file</text></g>
+    <g transform="translate(272 72)"><rect width="180" height="140" rx="18" fill="#111a2d" stroke="#2a3955"/><text x="22" y="39" fill="#9a8cff" font-size="13" font-weight="700" letter-spacing="2">PLAN</text><text x="22" y="77" fill="#f6f8ff" font-size="23" font-weight="750">Codex CLI</text><text x="22" y="107" fill="#98a5bd" font-size="14">shots · cast · assertions</text></g>
+    <g transform="translate(502 72)"><rect width="180" height="140" rx="18" fill="#111a2d" stroke="#2a3955"/><text x="22" y="39" fill="#5ee6d0" font-size="13" font-weight="700" letter-spacing="2">GENERATE</text><text x="22" y="77" fill="#f6f8ff" font-size="23" font-weight="750">MiniMax H3</text><text x="22" y="107" fill="#98a5bd" font-size="14">one controlled shot at a time</text></g>
+    <g transform="translate(732 72)"><rect width="180" height="140" rx="18" fill="#111a2d" stroke="#2a3955"/><text x="22" y="39" fill="#9a8cff" font-size="13" font-weight="700" letter-spacing="2">VERIFY</text><text x="22" y="77" fill="#f6f8ff" font-size="23" font-weight="750">Evidence QA</text><text x="22" y="107" fill="#98a5bd" font-size="14">media · semantics · retry</text></g>
+    <g transform="translate(962 72)"><rect width="196" height="140" rx="18" fill="#111a2d" stroke="url(#accent)" stroke-width="2" filter="url(#glow)"/><text x="22" y="39" fill="#5ee6d0" font-size="13" font-weight="700" letter-spacing="2">DELIVER</text><text x="22" y="77" fill="#f6f8ff" font-size="23" font-weight="750">Final film</text><text x="22" y="107" fill="#98a5bd" font-size="14">MP4 · report · manifest</text></g>
+    <text x="654" y="286" fill="#ff8b94" font-size="13" text-anchor="middle">failed shots return with concrete correction feedback</text>
+  </g>
+</svg>

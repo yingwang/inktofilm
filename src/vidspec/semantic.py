@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Mapping, Protocol, Sequence
 
 from vidspec.config import CaseSpec
 from vidspec.models import Evidence, Finding, VideoProbe
+from vidspec.providers import CodexCLIProvider, ProviderError
 
 
 class SemanticEvaluationError(RuntimeError):
@@ -26,6 +27,53 @@ class SemanticEvaluator(Protocol):
         probe: VideoProbe,
         evidence_root: Path,
     ) -> List[Finding]: ...
+
+
+SEMANTIC_RESULT_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "evaluator": {"type": "string"},
+        "provenance": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "model": {"type": "string"},
+                "revision": {"type": "string"},
+                "judge_prompt_hash": {"type": "string"},
+                "sampling_policy": {"type": "string"},
+            },
+            "required": ["model", "revision", "judge_prompt_hash", "sampling_policy"],
+        },
+        "assertions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "id": {"type": "string"},
+                    "score": {"type": "number", "minimum": 0, "maximum": 1},
+                    "summary": {"type": "string"},
+                    "rationale": {"type": "string"},
+                    "evidence": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "properties": {
+                                "frame_index": {"type": "integer", "minimum": 1},
+                                "description": {"type": "string"},
+                            },
+                            "required": ["frame_index", "description"],
+                        },
+                    },
+                },
+                "required": ["id", "score", "summary", "rationale", "evidence"],
+            },
+        },
+    },
+    "required": ["evaluator", "provenance", "assertions"],
+}
 
 
 @dataclass
@@ -263,6 +311,49 @@ class JsonSemanticEvaluator:
         raw = self.data["cases"].get(spec.case_id)
         if not isinstance(raw, dict):
             raise SemanticEvaluationError(f"No semantic result for case '{spec.case_id}'")
+        return _parse_result(spec, raw, frames)
+
+
+class CodexSemanticEvaluator:
+    """Judge sampled frames with an authenticated Codex CLI session."""
+
+    def __init__(self, provider: CodexCLIProvider):
+        self.provider = provider
+
+    def evaluate(
+        self,
+        spec: CaseSpec,
+        video_path: Path,
+        probe: VideoProbe,
+        evidence_root: Path,
+    ) -> List[Finding]:
+        assert spec.semantic is not None
+        frames = sample_frames(
+            video_path,
+            probe.duration_seconds,
+            spec.semantic.sample_frames,
+            evidence_root,
+            spec.case_id,
+        )
+        request = _request(spec, probe, frames)
+        prompt = """Act as a strict, evidence-bound video QA judge.
+Inspect every attached frame and evaluate every requested assertion exactly once.
+Use only visible evidence, cite the supplied 1-based frame indexes, and lower the score when
+the evidence is ambiguous or temporal behavior cannot be established from sampled frames.
+Never infer identity, dialogue accuracy, or off-screen events without visible support.
+Return only the JSON object required by the output schema.
+
+VIDSPEC REQUEST
+""" + json.dumps(request, ensure_ascii=False, indent=2)
+        try:
+            raw = self.provider.run_json(
+                prompt,
+                SEMANTIC_RESULT_SCHEMA,
+                images=[frame.path for frame in frames],
+                working_dir=evidence_root,
+            )
+        except ProviderError as exc:
+            raise SemanticEvaluationError(str(exc)) from exc
         return _parse_result(spec, raw, frames)
 
 

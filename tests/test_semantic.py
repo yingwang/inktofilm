@@ -3,7 +3,12 @@ import subprocess
 
 from vidspec.config import CaseSpec, SemanticAssertion, SemanticSpec
 from vidspec.models import VideoProbe
-from vidspec.semantic import CommandSemanticEvaluator, JsonSemanticEvaluator, SampledFrame
+from vidspec.semantic import (
+    CodexSemanticEvaluator,
+    CommandSemanticEvaluator,
+    JsonSemanticEvaluator,
+    SampledFrame,
+)
 
 
 def test_json_semantic_evaluator_binds_frame_evidence(tmp_path, monkeypatch):
@@ -129,3 +134,50 @@ def test_command_semantic_evaluator_uses_json_protocol(tmp_path, monkeypatch):
     assert captured["request"]["frames"][0]["timestamp_seconds"] == 1.25
     assert finding.status == "warn"
     assert finding.provenance["model"] == "command-vlm"
+
+
+def test_codex_semantic_evaluator_passes_sampled_frames(tmp_path, monkeypatch):
+    frame = tmp_path / "frame-01.jpg"
+    frame.write_bytes(b"jpeg")
+    monkeypatch.setattr(
+        "vidspec.semantic.sample_frames",
+        lambda *args, **kwargs: [
+            SampledFrame(1, 1.25, frame, "assets/clip/frame-01.jpg")
+        ],
+    )
+    captured = {}
+
+    class Provider:
+        @staticmethod
+        def run_json(prompt, schema, images, working_dir):
+            captured["prompt"] = prompt
+            captured["images"] = images
+            return {
+                "evaluator": "codex-cli",
+                "provenance": {"model": "codex"},
+                "assertions": [
+                    {
+                        "id": "subject",
+                        "score": 0.9,
+                        "summary": "Visible",
+                        "rationale": "Shown in frame 1",
+                        "evidence": [{"frame_index": 1, "description": "Subject"}],
+                    }
+                ],
+            }
+
+    spec = CaseSpec(
+        "clip",
+        "clip.mp4",
+        prompt="A visible subject",
+        semantic=SemanticSpec(
+            assertions=[SemanticAssertion("subject", "The subject is visible", 0.8)]
+        ),
+    )
+    probe = VideoProbe("clip.mp4", 2.5, 640, 360, 24.0, "h264")
+    finding = CodexSemanticEvaluator(Provider()).evaluate(
+        spec, tmp_path / "clip.mp4", probe, tmp_path / "assets"
+    )[0]
+    assert captured["images"] == [frame]
+    assert "evidence-bound" in captured["prompt"]
+    assert finding.status == "pass"
