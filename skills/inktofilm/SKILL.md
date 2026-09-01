@@ -152,6 +152,16 @@ missing work is paid for.
   static, not that the encode was lossy. Assemble at CRF 16 or lower with `-preset slow`, keep the
   provider's frame size (no rescale of a 768P clip in either direction), and say so in the delivery
   note when the user asks whether quality was lost in post.
+- Before trimming a dialogue shot to its planned length, read the word timestamps from the transcript
+  (`whisper-cli -ml 1`) and keep the clip long enough that the last word ends before the outgoing
+  audio fade begins; a line that survives the clip can still lose its final syllable to a dissolve.
+  Re-transcribe the dialogue window of the assembled film, not only the raw clip.
+- A transcript of a clip with no speech is not proof of speech. whisper invents short lines and
+  subtitle credits over steady ambience; before reshooting for an "improvised" line, confirm it with
+  timestamps and a loudness envelope (speech shows as peaks over the ambience floor).
+- A still edited from a reference portrait inherits the portrait's face but invents the weather. Pin
+  the sky, precipitation and season in every still prompt ("clear night, frost on the tiles, no snow")
+  or a single face-matched close-up arrives in a snowfall the rest of the film does not have.
 
 - Expand a short idea into a screenplay, character and world bible, and a sequence of independently
   generatable shots. Preserve the user's named characters, dialogue, visual rules, and ending.
