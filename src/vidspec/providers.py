@@ -290,6 +290,8 @@ class FalImageGenerator:
             "prompt": prompt,
             "num_images": 1,
             "aspect_ratio": aspect_ratio,
+            # The file is saved as .jpg, so ask for JPEG rather than the model's PNG default.
+            "output_format": "jpeg",
         }
         model = self.model
         if references:

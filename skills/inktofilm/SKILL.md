@@ -97,7 +97,16 @@ missing work is paid for.
   frame.
 - Describe a still as a photograph: framing, where each person is, what they are doing at the instant
   the shot opens, the light, the lens. Say "no text" on anything that could carry it, such as a
-  paddle, a sign, or a screen.
+  paddle, a sign, or a screen, and end every still prompt with "fills the entire frame edge to edge,
+  no black bars, no letterbox": wide establishing frames otherwise come back with cinema bars baked
+  into the image, which the video then inherits.
+- Portraits drift older and tidier than written. Give an age twice ("25, reads as twenty-five and not
+  older"), describe the hair by length and behaviour ("five centimetres on top, swept to one side,
+  not slicked back, not a buzz cut"), and name the light and palette the rest of the film uses, or a
+  lone shot comes back in a different colour temperature from its neighbours.
+- When a still is rejected, move it into a `rejected/` folder beside the others instead of deleting
+  it. The re-run only renders what is missing, and the earlier take stays available if the new one
+  loses a composition that was right.
 - Open a video prompt with "Begin exactly on the supplied frame" when the shot has a still, and say
   who keeps the same face, hair, and clothing. Name the number of props that must not multiply.
 - MiniMax H3 Max generates native sound and lip-synced speech. For a spoken line, quote the exact
