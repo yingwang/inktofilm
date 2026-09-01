@@ -22,7 +22,8 @@ run commands, understand models, or prepare a screenplay.
 
 Use an existing InkToFilm checkout when available. Otherwise prepare a project-local checkout from
 https://github.com/yingwang/inktofilm and a project-local environment; do not modify unrelated system
-configuration. Verify Codex, FFmpeg, FFprobe, and the fal client before production.
+configuration. Verify FFmpeg, FFprobe, and the fal client before production; `inktofilm doctor`
+reports what is missing.
 
 1. Look for `FAL_KEY` in the process environment, then in a project-local `.env`.
 2. If it is absent, ask the user once for their fal API key. When a signed-in browser is available,
@@ -36,8 +37,19 @@ configuration. Verify Codex, FFmpeg, FFprobe, and the fal client before producti
 
 ## Make the film
 
-Use the authenticated Codex model for the creative and judging work and fal MiniMax H3 Max as the
-default video generator, while respecting any model the user explicitly chooses.
+Do the creative and judging work with the agent that is running this skill, and use fal MiniMax H3
+Max as the default video generator, while respecting any model the user explicitly chooses.
+
+- In Claude Code, you are the planner and the judge. Write the screenplay, shot plan, and test suite
+  yourself. To judge a shot, sample the same evenly spaced frames the evaluator uses, inspect them
+  directly, write the reviewed per-case results JSON, and run the suite with `--semantic-results`.
+  Score only what is visible in the sampled frames, and record your own model name in the result
+  provenance.
+- In Codex, the CLI's built-in integration does the same work through the authenticated Codex CLI:
+  `inktofilm run --semantic-codex` for judging, and the default planner and judge of
+  `inktofilm produce`.
+- Any other model can be wired in through the JSON stdin/stdout hooks: `--semantic-command`,
+  `--planner-command`, `--judge-command`, and `--video-command`.
 
 - Expand a short idea into a screenplay, character and world bible, and a sequence of independently
   generatable shots. Preserve the user's named characters, dialogue, visual rules, and ending.

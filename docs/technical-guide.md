@@ -1,7 +1,8 @@
 # InkToFilm technical guide
 
-The public README presents the prompt-only Codex experience. This document covers the engine,
-command-line interface, and integration points for contributors and automated workflows.
+The public README presents the prompt-only agent experience in Claude Code and Codex. This document
+covers the engine, command-line interface, and integration points for contributors and automated
+workflows.
 
 ## Install from source
 
@@ -28,8 +29,10 @@ inktofilm produce screenplay.md -o productions/my-film
 
 The production bundle contains the source screenplay, structured plan, generated attempts, evidence
 frames, quality report, manifest, and `final.mp4`. Planning and semantic review default to the locally
-authenticated Codex CLI. Video generation defaults to `minimax/h3-max/text-to-video` through the
-user's fal account.
+authenticated Codex CLI. In Claude Code, the running agent normally plans and judges directly instead:
+it writes the plan and suite itself, inspects the sampled evidence frames, and replays its reviewed
+verdicts through `--semantic-results`. Video generation defaults to `minimax/h3-max/text-to-video`
+through the user's fal account.
 
 `--plan-only` performs no paid video generation. Normal production preserves every attempt and can
 retry failed shots. Credentials are read from the environment and are not written to the bundle.
@@ -56,12 +59,20 @@ The adapters exchange documented JSON through standard input and output. See
 inktofilm init
 inktofilm run inktofilm.json --output reports/latest
 inktofilm run inktofilm.json --semantic-codex --output reports/semantic
+inktofilm run inktofilm.json --semantic-results reviewed.json --output reports/semantic
 ```
 
 The runner performs deterministic decode, duration, resolution, frame-rate, codec, black-frame, and
 freeze checks. Semantic evaluation is opt-in and attaches sampled frames, scores, rationale, and
 provider provenance to each assertion. Suite paths are resolved relative to the suite and may not
 escape its directory.
+
+`--semantic-codex` judges the sampled frames with the locally authenticated Codex CLI.
+`--semantic-results` replays reviewed verdicts from a JSON file, which is how an agent with vision,
+such as Claude Code, acts as the judge itself: it samples the same evenly spaced frames, inspects
+them, writes the per-case results with its own model named in the provenance, and runs the suite
+against that file. The file format is documented in the
+[semantic evaluator protocol](semantic-evaluators.md).
 
 Reviewed results can be replayed without a live model:
 

@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>One prompt in. A finished film out.</strong><br>
-  No code. No command line. Just tell Codex what you want to watch.
+  No code. No command line. Just tell Claude Code or Codex what you want to watch.
 </p>
 
 <p align="center">
@@ -26,21 +26,26 @@
 
 ## Say what you want to make
 
-Open this repository in Codex and ask it to install the
-[InkToFilm skill](skills/inktofilm/SKILL.md). Then describe your film in ordinary language:
+The [InkToFilm skill](skills/inktofilm/SKILL.md) works in both Claude Code and Codex. Claude Code
+discovers it automatically through `.claude/skills` when you open this repository; to have it in
+every project, link it once with
+`ln -s "$PWD/skills/inktofilm" ~/.claude/skills/inktofilm` and invoke it as `/inktofilm`. In Codex,
+ask it to install the skill and invoke it as `$inktofilm`. Either way, describe your film in
+ordinary language:
 
-> Use $inktofilm to make a 30-second IMAX-style trailer where the Monkey King challenges all of
-> Heaven. Live action, monumental scale, no comedy.
+> Use the InkToFilm skill to make a 30-second IMAX-style trailer where the Monkey King challenges
+> all of Heaven. Live action, monumental scale, no comedy.
 
 Or bring more detail:
 
-> Use $inktofilm to turn my screenplay into a cinematic short. Keep the heroine's face and costume
-> consistent, preserve every line of dialogue, and make the ending quiet rather than melodramatic.
+> Use the InkToFilm skill to turn my screenplay into a cinematic short. Keep the heroine's face and
+> costume consistent, preserve every line of dialogue, and make the ending quiet rather than
+> melodramatic.
 
 Or start a series:
 
-> Use $inktofilm to create a three-scene fantasy pilot from this premise. First make a 45-second proof
-> of concept, then keep the same cast and world bible for the next scene.
+> Use the InkToFilm skill to create a three-scene fantasy pilot from this premise. First make a
+> 45-second proof of concept, then keep the same cast and world bible for the next scene.
 
 That is the interface. InkToFilm develops the script, plans the shots, generates the footage, checks
 whether the story is actually visible, fixes weak takes, edits the selected clips, and returns a
@@ -127,7 +132,8 @@ each decision.
 
 ## What you need
 
-- **Codex**, for story development, shot planning, visual review, and the no-code conversation.
+- **Claude Code or Codex**, for story development, shot planning, visual review, and the no-code
+  conversation.
 - **A fal API key**, for MiniMax video generation. InkToFilm can use another video provider when you
   choose one.
 

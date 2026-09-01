@@ -38,6 +38,21 @@ inktofilm run suite.json \
 InkToFilm resamples the video, binds the cited frame indexes to their timestamps, and writes the
 evidence thumbnails beside the HTML report.
 
+The results file wraps one entry per case id, each holding the same object an evaluator command
+returns:
+
+```json
+{
+  "cases": {
+    "camera-orbit": {
+      "evaluator": "…",
+      "provenance": {"model": "…", "revision": "…", "judge_prompt_hash": "…", "sampling_policy": "…"},
+      "assertions": [{"id": "…", "score": 0.9, "summary": "…", "rationale": "…", "evidence": []}]
+    }
+  }
+}
+```
+
 ## Run any VLM or research evaluator
 
 Choose an executable explicitly:
