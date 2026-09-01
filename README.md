@@ -64,11 +64,34 @@ places credentials in the film project or Git history.
 You give InkToFilm one sentence or a complete screenplay. It handles the rest:
 
 - writes a shootable story and keeps a character and world bible;
+- renders a reference portrait for each character, then locks each shot's opening frame as a still
+  before spending a video credit on it;
 - turns the story into cinematic shots with continuity anchors;
 - generates every scene with the video model you choose;
 - reviews story fidelity, action, composition, anatomy, text, black frames, and freezes;
 - retries only the shots that meaningfully failed;
 - edits the approved footage, sound, and title cards into one film.
+
+### Stills, faces, and shots that join up
+
+Three of those steps deserve naming, because they are what keep a face and a costume alive across a
+whole film rather than for five seconds at a time.
+
+**A still first.** Framing, costume, and light are cheap to fix in an image and expensive to fix in
+a clip. Each character gets one clean reference portrait, every shot's still is edited from those
+portraits, and the shot is then generated from its own still. One face and one costume carry the
+whole film.
+
+**A real face, where it can survive.** Point `--face traveler=photo.jpg` at a character and that
+photographed face is put onto their portrait and onto their close-up stills. The planner marks only
+the shots framed tightly enough to hold it: on a wide shot the face covers too few pixels to swap
+cleanly, and the attempt reads as a deformed face rather than a likeness. The photo is uploaded to
+the swap model and never written into any text prompt.
+
+**Cuts that actually join.** Where the action runs straight on with no cut, the next shot's still is
+handed to the video model as this shot's mandated last frame. The two clips then meet on the same
+image instead of merely resembling each other, and a re-shoot of one segment drops back in without
+disturbing its neighbours.
 
 ## Demo 1 · *Journey to the West: Great Havoc in Heaven*
 
