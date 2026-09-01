@@ -5,8 +5,9 @@
 <h1 align="center">VidSpec</h1>
 
 <p align="center">
-  <strong>From screenplay to tested short film.</strong><br>
-  Plan, generate, judge, retry, edit, and regression-test AI video with inspectable evidence.
+  <strong>One prompt or screenplay. One finished film or TV episode.</strong><br>
+  VidSpec turns your story into shots, generates them, checks what the audience will see,<br>
+  fixes weak takes, and edits the approved footage into a film.
 </p>
 
 <p align="center">
@@ -16,18 +17,34 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/report-preview.svg" width="100%" alt="VidSpec visual report preview">
+  <img src="docs/assets/production-pipeline.svg" width="100%" alt="One story becomes a planned, generated, verified, and edited film in VidSpec">
 </p>
 
-Video generation teams often keep a folder of prompts and inspect outputs by eye. A model update
-may improve average quality while quietly breaking one camera move, one character, or one long
-sequence. A leaderboard score does not show where the failure began.
+Bring a one-line premise, a scene brief, or your own complete screenplay. VidSpec acts as the
+production system around the models you choose: it develops the story into a shootable plan,
+maintains the creative constraints, generates every shot, rejects broken takes with visible
+evidence, retries only what failed, and assembles the result into a final video.
 
-VidSpec treats generated video like software:
+```text
+"Make a 30-second theatrical trailer in which the Monkey King challenges Heaven."
+                                      ↓
+ story plan → character bible → shot list → generated takes → review → retry → final.mp4
+```
 
-- turn one screenplay into a structured, shot-by-shot short-film plan;
+The current release makes complete 30–60 second films and proof-of-concept episodes. The same
+scene-based, resumable pipeline is intended to scale to feature films and episodic television:
+produce one scene at a time, carry a shared character and world bible across them, then assemble
+approved scenes into an episode or feature.
+
+## What VidSpec does
+
+VidSpec treats filmmaking as a creative loop with testable delivery:
+
+- turn one idea, prompt, or screenplay into a structured production plan;
+- preserve character, world, visual-style, dialogue, and continuity requirements;
 - generate each shot through MiniMax H3 or an explicitly selected custom command;
 - judge failed shots, feed concrete corrections back, and regenerate only what broke;
+- edit approved shots into a watchable final film;
 - declare expected behavior in a readable JSON suite;
 - run deterministic media checks with FFmpeg;
 - turn prompts into scored semantic assertions without locking into one VLM;
@@ -41,10 +58,10 @@ VidSpec treats generated video like software:
 > judgments are only as reliable as the selected evaluator; every score keeps its rationale,
 > provenance, and cited frames. Production also preserves every shot attempt in a manifest.
 
-## Produce a short film from one screenplay
+## Make a film from one prompt or your own screenplay
 
 <p align="center">
-  <img src="docs/assets/production-pipeline.svg" width="100%" alt="VidSpec plans, generates, verifies, retries, and edits a screenplay into a final film">
+  <img src="docs/assets/report-preview.svg" width="100%" alt="VidSpec visual quality report with evidence for every reviewed shot">
 </p>
 
 The default production stack uses an already authenticated
@@ -56,16 +73,20 @@ and FFmpeg for inspection and editing.
 python3 -m pip install -e '.[fal]'
 vidspec doctor
 
-# Safe first look: plan the film without invoking a paid video model
-vidspec produce screenplay.md --plan-only -o productions/my-film
+# Start with one sentence, a treatment, or a complete screenplay
+printf 'A lone astronaut finds a living ocean beneath Europa.' > story.md
+
+# Safe first look: develop and inspect the production plan without paid generation
+vidspec produce story.md --plan-only -o productions/my-film
 
 # Generate, judge, selectively retry, and edit the film
 export FAL_KEY="..."
-vidspec produce screenplay.md -o productions/my-film
+vidspec produce story.md -o productions/my-film
 open productions/my-film/index.html
 ```
 
-One command produces `script.md`, `plan.json`, every shot attempt, sampled evidence frames,
+Replace `story.md` with your own screenplay when you already know exactly what should happen. One
+command produces `script.md`, `plan.json`, every shot attempt, sampled evidence frames,
 `report.json`, a visual `index.html`, `manifest.json`, and the assembled `final.mp4`. Keys are read
 from the environment and are never written to the production bundle.
 
