@@ -43,13 +43,20 @@ default video generator, while respecting any model the user explicitly chooses.
   generatable shots. Preserve the user's named characters, dialogue, visual rules, and ending.
 - Turn each shot into a self-contained prompt with continuity anchors and explicit observable
   requirements. Keep title cards and other exact text for local post-production.
+- Choose continuity method shot by shot. When action directly continues, seed the next shot from a
+  stable frame near the end of the previous clip rather than blindly using the literal final frame.
+  Use a clean character reference when only identity must persist, and keep text-to-video freedom for
+  a new location, scale, time, or composition. Do not chain every shot through its predecessor.
 - Generate the planned shots. For every shot, run media checks and evidence-backed semantic checks
   derived from the screenplay, including required characters, setting, action, camera intent, text,
   and visible defects.
 - Retry only shots that fail meaningful story or quality requirements. Prefer a targeted rewrite or
   edit over regenerating clips that already pass. Never spend beyond the confirmed cap.
 - Assemble the selected clips, dialogue or native audio, transitions, and local title cards into one
-  playable film. Normalize resolution, frame rate, codecs, audio format, and duration.
+  playable film. Avoid presenting independent generations as hard-cut fragments: use motivated
+  eyeline and action matches, restrained dissolves or light/occlusion transitions, and dialogue,
+  ambience, or effects that cross the cut. Preserve intentional hard cuts when they provide dramatic
+  punctuation. Normalize resolution, frame rate, codecs, audio format, and duration.
 
 For the current H3 workflow, use InkToFilm's provider and production APIs rather than recreating fal
 requests ad hoc. Keep generated prompts, reports, and media inside the user's chosen project. Treat
