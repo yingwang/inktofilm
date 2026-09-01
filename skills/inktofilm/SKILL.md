@@ -115,6 +115,20 @@ missing work is paid for.
   words in the prompt, name the speaker, and ask for natural lip movement and no subtitles; put the
   same words in the plan's `dialogue` field so the judge can check them. Accepted durations are 5 to
   15 seconds per shot at 480P or 768P; two lines of dialogue need six seconds rather than five.
+  Frames cannot confirm what was said, so transcribe the native audio (a local whisper.cpp is
+  enough) and compare it with the script; the model also improvises murmured lines in crowd
+  scenes, so read the whole transcript, not only the lines you wrote.
+- Light "catching" or "reflected in" a character's eyes is rendered literally as glowing irises.
+  Say the eyes stay their natural colour and forbid coloured light in them.
+- Two hand-held props tend to merge into one hand within a few frames, whatever the still shows.
+  When a prop matters, give it a place that is not a hand (mouth, pocket, table) or plan for it to
+  be optional, and judge the take on staging rather than on which hand holds what.
+- End a shot with an eyeline toward the next shot's subject (a glance toward the front row before
+  the cut to her turning) so the join reads as cause and effect rather than as two generations.
+- In the FFmpeg assembly, `concat` emits a microsecond timebase that a following `xfade` rejects;
+  pin every video chain to `settb=1/<fps>` before and after concat when mixing dissolves and hard
+  cuts. Trim each clip to its planned length so the title card keeps its full run, and read the
+  clip durations from the files rather than assuming them.
 
 - Expand a short idea into a screenplay, character and world bible, and a sequence of independently
   generatable shots. Preserve the user's named characters, dialogue, visual rules, and ending.
