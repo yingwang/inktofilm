@@ -27,16 +27,16 @@ VidSpec treats generated video like software:
 
 - declare expected behavior in a readable JSON suite;
 - run deterministic media checks with FFmpeg;
-- ingest scores from any VLM or research evaluator without locking into one provider;
+- turn prompts into scored semantic assertions without locking into one VLM;
+- attach sampled frame evidence, timestamps, rationale, and evaluator provenance;
 - localize black and frozen intervals on a visual timeline;
 - compare candidate runs with a known baseline;
 - return non-zero exit codes when a regression should block CI.
 
 > [!IMPORTANT]
-> VidSpec is an early, usable foundation, not a claim that video semantics have been solved.
-> Version 0.1 validates media properties and temporal defects. Semantic checks enter through an
-> explicit metric interface; native identity, action, camera, and physics evaluators are on the
-> roadmap.
+> VidSpec is an evaluation harness, not a claim that video semantics have been solved. Media checks
+> are deterministic. Semantic assertions are explicitly opt-in and only as reliable as the selected
+> evaluator; every score keeps its rationale, provenance, and cited frames.
 
 ## Quick start
 
@@ -57,7 +57,54 @@ vidspec run vidspec.json --output reports/latest
 open reports/latest/index.html
 ```
 
-The runner writes both a machine-readable `report.json` and a self-contained `index.html`.
+The runner writes a portable report bundle: machine-readable `report.json`, visual `index.html`, and
+local evidence assets when semantic checks are enabled.
+
+## Real generated-video example
+
+This public, 5.2-second clip was generated with
+[MiniMax H3 Max on fal.ai](https://fal.ai/tools/minimax-h3-max) from a *Journey to the West* prompt.
+It contains no personal prompt, account identifier, credential, or private source material.
+
+<p align="center">
+  <a href="examples/journey-to-the-west/minimax-h3.mp4">
+    <img src="docs/assets/journey-to-the-west/contact-sheet.jpg" width="100%" alt="Five sampled frames from the Journey to the West MiniMax example">
+  </a>
+</p>
+
+<p align="center">
+  <a href="examples/journey-to-the-west/minimax-h3.mp4">▶ Watch the generated MP4</a>
+  ·
+  <a href="examples/journey-to-the-west/semantic-results.json">Inspect the reviewed semantic evidence</a>
+</p>
+
+The contract asks six concrete questions: are Wukong, Tang Sanzang, and the white horse present; is
+the landing-to-pointing action completed; is the thundercloud visible; do identities persist; is the
+shot a continuous dolly-in; and is the image free of text and logos?
+
+```bash
+vidspec run examples/journey-to-the-west/vidspec.json \
+  --semantic-results examples/journey-to-the-west/semantic-results.json \
+  --output reports/journey-to-the-west
+```
+
+The checked-in reference review passes all six assertions and cites the frames that support each
+decision. Replay makes the example deterministic; replace `--semantic-results` with an evaluator
+command to run a VLM live:
+
+<p align="center">
+  <img src="docs/assets/journey-to-the-west/semantic-report.png" width="100%" alt="VidSpec report with passing semantic assertions and cited frame evidence">
+</p>
+
+```bash
+vidspec run suite.json \
+  --semantic-command "my-video-judge --model research-v3" \
+  --output reports/semantic
+```
+
+VidSpec samples frames, sends a documented JSON request over stdin, validates the evaluator's JSON
+response, applies suite-owned thresholds, and renders evidence thumbnails. A suite can never choose
+or execute the evaluator itself. See [semantic evaluator protocol](docs/semantic-evaluators.md).
 
 ### Run the real-media smoke test
 
@@ -97,15 +144,30 @@ available.
           "min": 0.80,
           "source": "my-vlm-evaluator@8c1d2ef"
         }
+      },
+      "semantic": {
+        "sample_frames": 6,
+        "assertions": [
+          {
+            "id": "teapot-persists",
+            "description": "One red ceramic teapot remains visible and unchanged.",
+            "min_score": 0.8
+          },
+          {
+            "id": "camera-orbit",
+            "description": "The camera completes a slow orbit without an obvious cut.",
+            "min_score": 0.75
+          }
+        ]
       }
     }
   ]
 }
 ```
 
-Paths are resolved relative to the suite and may not escape its directory. External metrics retain
-their source label in the report, so a result remains auditable rather than becoming an unexplained
-model-generated number.
+Paths are resolved relative to the suite and may not escape its directory. External metrics and
+semantic judgments retain their source labels and evidence in the report, so a result remains
+auditable rather than becoming an unexplained model-generated number.
 
 ## Catch a regression
 
@@ -128,7 +190,7 @@ diff and a human-readable comparison page.
 | --- | --- |
 | `vidspec init [path]` | Create a documented starter suite without overwriting files. |
 | `vidspec probe VIDEO` | Print normalized FFprobe metadata as JSON. |
-| `vidspec run SUITE` | Execute checks and write JSON plus visual HTML. |
+| `vidspec run SUITE` | Execute media checks and optional semantic assertions; write JSON plus visual HTML. |
 | `vidspec compare OLD NEW` | Detect status regressions between two reports. |
 
 Use `--fail-on never`, `warn`, `fail`, or `error` to control the CI threshold for a run.
@@ -137,10 +199,12 @@ Use `--fail-on never`, `warn`, `fail`, or `error` to control the CI threshold fo
 
 ```mermaid
 flowchart LR
-    S[vidspec.json] --> R[Rule engine]
+    Q[vidspec.json] --> R[Rule engine]
     V[Generated videos] --> F[FFprobe + FFmpeg]
+    F --> FS[Evidence frame sampler]
     F --> R
-    E[VLM / research evaluator] -->|named metrics| R
+    FS --> E[Opt-in VLM / human review]
+    E -->|scores + cited evidence| R
     R --> J[report.json]
     R --> H[Visual timeline report]
     J --> C[Baseline comparison]
@@ -155,12 +219,14 @@ replace them without rewriting the engine.
 
 - It is not another static leaderboard.
 - It does not hide judge prompts, metric provenance, or thresholds.
-- It does not upload videos anywhere by default.
+- It does not upload videos or invoke a semantic provider by default.
+- It does not let an untrusted suite execute evaluator commands.
 - It does not pretend that one aggregate score explains model behavior.
 
 ## Research roadmap
 
-The next layer is a library of native, evidence-producing semantic probes:
+The provider-neutral assertion and evidence layer is implemented. The next layer is a calibrated
+library of native probes and reference evaluator adapters:
 
 1. entity count and identity consistency, with tracked regions on the timeline;
 2. action completion and prompt-event ordering;

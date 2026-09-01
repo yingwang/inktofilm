@@ -47,3 +47,9 @@ jobs:
           set -e
           test "$status" -eq 1
           python -c 'import json; r=json.load(open("reports/e2e/report.json")); assert [c["status"] for c in r["cases"]] == ["pass", "fail"]'
+      - name: Replay the public generated-video semantic example
+        run: |
+          vidspec run examples/journey-to-the-west/vidspec.json \
+            --semantic-results examples/journey-to-the-west/semantic-results.json \
+            --output reports/journey-to-the-west
+          python -c 'import json; r=json.load(open("reports/journey-to-the-west/report.json")); assert r["status"] == "pass"; assert len([f for f in r["cases"][0]["findings"] if f["check"].startswith("semantic:")]) == 6'

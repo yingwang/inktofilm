@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional
 from vidspec.config import CaseSpec, SuiteSpec
 from vidspec.media import MediaToolError, detect_black_frames, detect_freezes, probe_video
 from vidspec.models import CaseReport, Finding, Interval, RunReport, VideoProbe
+from vidspec.semantic import SemanticEvaluationError, SemanticEvaluator
 
 ProbeFn = Callable[[Path], VideoProbe]
 IntervalFn = Callable[..., List[Interval]]
@@ -76,6 +77,8 @@ def evaluate_case(
     probe_fn: ProbeFn = probe_video,
     black_fn: IntervalFn = detect_black_frames,
     freeze_fn: IntervalFn = detect_freezes,
+    semantic_evaluator: Optional[SemanticEvaluator] = None,
+    evidence_root: Optional[Path] = None,
 ) -> CaseReport:
     path = (base_dir / spec.video).resolve()
     try:
@@ -157,6 +160,30 @@ def evaluate_case(
                 findings.append(Finding(label, "error", "Could not run temporal check", details=str(exc)))
 
     findings.extend(_metric_findings(spec.metrics))
+    if spec.semantic is not None:
+        if semantic_evaluator is None:
+            findings.append(
+                Finding(
+                    "semantics",
+                    "skipped",
+                    "Semantic assertions declared but no evaluator was selected",
+                    expected={"assertions": len(spec.semantic.assertions)},
+                    details="Use --semantic-results or --semantic-command to opt in.",
+                )
+            )
+        elif evidence_root is None:
+            findings.append(
+                Finding("semantics", "error", "Semantic evidence output directory is unavailable")
+            )
+        else:
+            try:
+                findings.extend(
+                    semantic_evaluator.evaluate(spec, path, probe, evidence_root)
+                )
+            except SemanticEvaluationError as exc:
+                findings.append(
+                    Finding("semantics", "error", "Semantic evaluation failed", details=str(exc))
+                )
     return CaseReport(spec.case_id, spec.video, spec.prompt, probe, findings)
 
 
@@ -166,11 +193,20 @@ def run_suite(
     black_fn: IntervalFn = detect_black_frames,
     freeze_fn: IntervalFn = detect_freezes,
     now: Optional[datetime] = None,
+    semantic_evaluator: Optional[SemanticEvaluator] = None,
+    evidence_root: Optional[Path] = None,
 ) -> RunReport:
     timestamp = now or datetime.now(timezone.utc)
     cases = [
-        evaluate_case(case, suite.base_dir, probe_fn, black_fn, freeze_fn)
+        evaluate_case(
+            case,
+            suite.base_dir,
+            probe_fn,
+            black_fn,
+            freeze_fn,
+            semantic_evaluator,
+            evidence_root,
+        )
         for case in suite.cases
     ]
     return RunReport(suite.name, timestamp.isoformat(), cases)
-

@@ -15,6 +15,11 @@ from vidspec.engine import run_suite
 from vidspec.media import MediaToolError, probe_video
 from vidspec.models import STATUS_ORDER
 from vidspec.report import write_html, write_json
+from vidspec.semantic import (
+    CommandSemanticEvaluator,
+    JsonSemanticEvaluator,
+    SemanticEvaluationError,
+)
 
 _STARTER = {
     "name": "my-video-model",
@@ -49,6 +54,21 @@ def _parser() -> argparse.ArgumentParser:
     run = commands.add_parser("run", help="run a JSON test suite")
     run.add_argument("suite")
     run.add_argument("--output", "-o", default="reports/latest")
+    semantic = run.add_mutually_exclusive_group()
+    semantic.add_argument(
+        "--semantic-results",
+        help="replay semantic evidence from a reviewed JSON result file",
+    )
+    semantic.add_argument(
+        "--semantic-command",
+        help="opt in to an evaluator command that reads a JSON request from stdin",
+    )
+    run.add_argument(
+        "--semantic-timeout",
+        type=float,
+        default=180.0,
+        help="timeout in seconds for --semantic-command (default: 180)",
+    )
     run.add_argument(
         "--fail-on",
         choices=("never", "warn", "fail", "error"),
@@ -81,8 +101,20 @@ def _run(args: argparse.Namespace) -> int:
 
     if args.command == "run":
         suite = load_suite(Path(args.suite))
-        report = run_suite(suite)
         output = Path(args.output)
+        semantic_evaluator = None
+        if args.semantic_results:
+            semantic_evaluator = JsonSemanticEvaluator(Path(args.semantic_results))
+        elif args.semantic_command:
+            semantic_evaluator = CommandSemanticEvaluator.from_string(
+                args.semantic_command,
+                timeout_seconds=args.semantic_timeout,
+            )
+        report = run_suite(
+            suite,
+            semantic_evaluator=semantic_evaluator,
+            evidence_root=output / "assets",
+        )
         write_json(report, output / "report.json")
         write_html(report, output / "index.html")
         print(f"{suite.name}: {report.status.upper()} ({len(report.cases)} cases)")
@@ -104,8 +136,14 @@ def _run(args: argparse.Namespace) -> int:
 def main(argv: Optional[List[str]] = None) -> None:
     try:
         code = _run(_parser().parse_args(argv))
-    except (ConfigurationError, ComparisonError, MediaToolError, OSError, ValueError) as exc:
+    except (
+        ConfigurationError,
+        ComparisonError,
+        MediaToolError,
+        SemanticEvaluationError,
+        OSError,
+        ValueError,
+    ) as exc:
         print(f"vidspec: {exc}", file=sys.stderr)
         code = 2
     raise SystemExit(code)
-

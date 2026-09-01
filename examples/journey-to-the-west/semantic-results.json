@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "description": "Reference review of the public MiniMax H3 Max example generated on 2026-09-01.",
+  "cases": {
+    "wukong-on-the-ridge": {
+      "evaluator": "reference-visual-review@2026-09-01",
+      "provenance": {
+        "review_type": "manual reference review",
+        "source_model": "MiniMax H3 Max",
+        "source_page": "https://fal.ai/tools/minimax-h3-max",
+        "sampling_policy": "five evenly spaced frames plus full-clip playback"
+      },
+      "assertions": [
+        {
+          "id": "characters-present",
+          "score": 0.98,
+          "summary": "All three requested subjects are clearly visible",
+          "rationale": "The armored monkey hero, robed monk, and white horse remain separately recognizable from wide to medium framing.",
+          "evidence": [
+            {"frame_index": 1, "description": "Wide shot contains Wukong, monk, and white horse"},
+            {"frame_index": 5, "description": "Closer view preserves all three subjects"}
+          ]
+        },
+        {
+          "id": "action-completion",
+          "score": 0.91,
+          "summary": "The landing-to-pointing action is completed",
+          "rationale": "Wukong begins low in a landing pose, rises with the staff, then extends an arm toward the storm. The exact prop shape is stylized but persistent.",
+          "evidence": [
+            {"frame_index": 1, "description": "Low landing pose at the ridge edge"},
+            {"frame_index": 3, "description": "Staff raised as the gesture begins"},
+            {"frame_index": 5, "description": "Pointing gesture held toward lightning"}
+          ]
+        },
+        {
+          "id": "thundercloud",
+          "score": 0.99,
+          "summary": "The storm target is unmistakable",
+          "rationale": "A dark cloud mass and multiple lightning forks occupy the right background.",
+          "evidence": [
+            {"frame_index": 3, "description": "Lightning appears behind the group"},
+            {"frame_index": 5, "description": "Thundercloud and lightning remain prominent"}
+          ]
+        },
+        {
+          "id": "identity-persistence",
+          "score": 0.94,
+          "summary": "Character identity remains stable across the clip",
+          "rationale": "Armor, silhouette, robe colors, bald head, horse color, and relative staging persist across all samples.",
+          "evidence": [
+            {"frame_index": 1, "description": "Initial wide-shot identities"},
+            {"frame_index": 5, "description": "Final close-shot identities match"}
+          ]
+        },
+        {
+          "id": "camera-grammar",
+          "score": 0.96,
+          "summary": "The shot reads as a continuous slow dolly-in",
+          "rationale": "Subject scale increases smoothly while composition and lighting remain continuous; no sampled discontinuity suggests a cut.",
+          "evidence": [
+            {"frame_index": 1, "description": "Wide establishing distance"},
+            {"frame_index": 3, "description": "Mid-shot progression"},
+            {"frame_index": 5, "description": "Closer endpoint with matching composition"}
+          ]
+        },
+        {
+          "id": "no-text-or-logos",
+          "score": 0.99,
+          "summary": "No visible text or branding is present",
+          "rationale": "All sampled frames are clean cinematic imagery without overlays, subtitles, watermarks, or logos.",
+          "evidence": [
+            {"frame_index": 2, "description": "Clean frame without overlays"},
+            {"frame_index": 4, "description": "Clean later frame without overlays"}
+          ]
+        }
+      ]
+    }
+  }
+}

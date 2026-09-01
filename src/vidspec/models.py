@@ -48,6 +48,19 @@ class Interval:
 
 
 @dataclass
+class Evidence:
+    timestamp_seconds: float
+    description: str = ""
+    frame_index: Optional[int] = None
+    image: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        value = asdict(self)
+        value["timestamp_seconds"] = round(self.timestamp_seconds, 4)
+        return value
+
+
+@dataclass
 class Finding:
     check: str
     status: str
@@ -56,6 +69,8 @@ class Finding:
     expected: Any = None
     intervals: List[Interval] = field(default_factory=list)
     details: str = ""
+    evidence: List[Evidence] = field(default_factory=list)
+    provenance: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -66,6 +81,8 @@ class Finding:
             "expected": self.expected,
             "intervals": [interval.to_dict() for interval in self.intervals],
             "details": self.details,
+            "evidence": [item.to_dict() for item in self.evidence],
+            "provenance": self.provenance,
         }
 
 
@@ -120,4 +137,3 @@ class RunReport:
             "summary": self.summary,
             "cases": [case.to_dict() for case in self.cases],
         }
-

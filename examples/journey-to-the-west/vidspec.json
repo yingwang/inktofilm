@@ -1,0 +1,53 @@
+{
+  "name": "journey-to-the-west-minimax-h3",
+  "cases": [
+    {
+      "id": "wukong-on-the-ridge",
+      "video": "minimax-h3.mp4",
+      "prompt": "A cinematic Journey to the West scene at sunrise: Sun Wukong in golden armor lands on a mountain ridge, raises his Ruyi Jingu Bang, and points toward a distant thundercloud. Tang Sanzang in red-and-gold robes stands behind a white horse. One continuous slow dolly-in, no cuts. Wind moves banners and clouds. Widescreen, realistic Chinese fantasy film, no text, no logos.",
+      "expect": {
+        "duration_seconds": {"min": 4.5, "max": 6.0},
+        "resolution": {"min_width": 800, "min_height": 450},
+        "fps": {"min": 20},
+        "codecs": ["h264", "hevc", "av1", "vp9"],
+        "black_frames": {"max_total_ratio": 0.01},
+        "freezes": {"max_total_ratio": 0.05}
+      },
+      "semantic": {
+        "sample_frames": 5,
+        "assertions": [
+          {
+            "id": "characters-present",
+            "description": "Sun Wukong in golden armor, Tang Sanzang in red-and-gold robes, and a white horse are visible.",
+            "min_score": 0.8
+          },
+          {
+            "id": "action-completion",
+            "description": "Sun Wukong lands or rises from a landing pose, raises the Ruyi Jingu Bang, and points toward the cloud.",
+            "min_score": 0.75
+          },
+          {
+            "id": "thundercloud",
+            "description": "A dark distant thundercloud with visible lightning is present.",
+            "min_score": 0.8
+          },
+          {
+            "id": "identity-persistence",
+            "description": "The principal characters and white horse remain visually consistent across the sampled timeline.",
+            "min_score": 0.8
+          },
+          {
+            "id": "camera-grammar",
+            "description": "The scene behaves like one continuous slow dolly-in without an obvious cut.",
+            "min_score": 0.75
+          },
+          {
+            "id": "no-text-or-logos",
+            "description": "There is no visible overlaid text, subtitle, watermark, or logo.",
+            "min_score": 0.9
+          }
+        ]
+      }
+    }
+  ]
+}
