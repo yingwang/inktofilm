@@ -53,12 +53,16 @@ _STARTER = {
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="vidspec", description=__doc__)
+    program = Path(sys.argv[0]).name.lower()
+    if program not in {"inktofilm", "vidspec"}:
+        program = "inktofilm"
+    parser = argparse.ArgumentParser(prog=program, description=__doc__)
     parser.add_argument("--version", action="version", version="%(prog)s " + __version__)
     commands = parser.add_subparsers(dest="command", required=True)
 
-    init = commands.add_parser("init", help="write a starter vidspec.json")
-    init.add_argument("path", nargs="?", default="vidspec.json")
+    default_suite = "vidspec.json" if program == "vidspec" else "inktofilm.json"
+    init = commands.add_parser("init", help=f"write a starter {default_suite}")
+    init.add_argument("path", nargs="?", default=default_suite)
 
     probe = commands.add_parser("probe", help="print normalized video metadata")
     probe.add_argument("video")
@@ -131,7 +135,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     produce.add_argument(
         "--judge-command",
-        help="BYOM semantic judge command using VidSpec's JSON evaluator protocol",
+        help="BYOM semantic judge command using InkToFilm's JSON evaluator protocol",
     )
     produce.add_argument(
         "--video-command",
@@ -292,6 +296,9 @@ def main(argv: Optional[List[str]] = None) -> None:
         OSError,
         ValueError,
     ) as exc:
-        print(f"vidspec: {exc}", file=sys.stderr)
+        program = Path(sys.argv[0]).name.lower()
+        if program not in {"inktofilm", "vidspec"}:
+            program = "inktofilm"
+        print(f"{program}: {exc}", file=sys.stderr)
         code = 2
     raise SystemExit(code)

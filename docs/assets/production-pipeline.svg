@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="310" viewBox="0 0 1200 310" role="img" aria-labelledby="title desc">
-  <title id="title">VidSpec screenplay production pipeline</title>
+  <title id="title">InkToFilm screenplay production pipeline</title>
   <desc id="desc">A screenplay is planned by an LLM, generated shot by shot, evaluated with evidence, selectively retried, and edited into a final film.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1020"/><stop offset="1" stop-color="#15102c"/></linearGradient>

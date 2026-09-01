@@ -1,4 +1,4 @@
-"""Configuration loading and validation for VidSpec JSON suites."""
+"""Configuration loading and validation for InkToFilm JSON suites."""
 
 from __future__ import annotations
 

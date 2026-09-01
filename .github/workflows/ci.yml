@@ -22,6 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
       - run: python -m pip install -e '.[dev]'
+      - run: inktofilm --version && vidspec --version
       - run: ruff check .
       - run: pytest -q
 
@@ -33,7 +34,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - name: Install VidSpec and FFmpeg
+      - name: Install InkToFilm and FFmpeg
         run: |
           python -m pip install -e '.[dev]'
           sudo apt-get update
@@ -42,20 +43,20 @@ jobs:
         run: |
           ./scripts/generate-fixtures.sh
           set +e
-          vidspec run examples/e2e.json --output reports/e2e
+          inktofilm run examples/e2e.json --output reports/e2e
           status=$?
           set -e
           test "$status" -eq 1
           python -c 'import json; r=json.load(open("reports/e2e/report.json")); assert [c["status"] for c in r["cases"]] == ["pass", "fail"]'
       - name: Replay the public generated-video semantic example
         run: |
-          vidspec run examples/journey-to-the-west/vidspec.json \
+          inktofilm run examples/journey-to-the-west/vidspec.json \
             --semantic-results examples/journey-to-the-west/semantic-results.json \
             --output reports/journey-to-the-west
           python -c 'import json; r=json.load(open("reports/journey-to-the-west/report.json")); assert r["status"] == "pass"; assert len([f for f in r["cases"][0]["findings"] if f["check"].startswith("semantic:")]) == 6'
       - name: Replay the screenplay-to-film production preview
         run: |
-          vidspec run examples/great-havoc-in-heaven/vidspec-shot-01.json \
+          inktofilm run examples/great-havoc-in-heaven/vidspec-shot-01.json \
             --semantic-results examples/great-havoc-in-heaven/semantic-results-shot-01.json \
             --output reports/great-havoc-shot-01
           python -c 'import json; r=json.load(open("reports/great-havoc-shot-01/report.json")); assert r["status"] == "pass"; assert len([f for f in r["cases"][0]["findings"] if f["check"].startswith("semantic:")]) == 5'

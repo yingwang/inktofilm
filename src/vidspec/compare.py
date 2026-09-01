@@ -1,4 +1,4 @@
-"""Status and metric regression comparison for two VidSpec JSON reports."""
+"""Status and metric regression comparison for two InkToFilm JSON reports."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ def _load(path: Path) -> Dict[str, Any]:
     except (OSError, json.JSONDecodeError) as exc:
         raise ComparisonError(f"Could not read report {path}: {exc}") from exc
     if not isinstance(value, dict) or not isinstance(value.get("cases"), list):
-        raise ComparisonError(f"{path} is not a VidSpec report")
+        raise ComparisonError(f"{path} is not an InkToFilm report")
     return value
 
 
@@ -69,11 +69,11 @@ def write_comparison(result: Dict[str, Any], json_path: Path, html_path: Path) -
                 html.escape(str(change["after"] or "—")),
             )
         )
-    body = """<!doctype html><html><head><meta charset="utf-8"><title>VidSpec comparison</title>
+    body = """<!doctype html><html><head><meta charset="utf-8"><title>InkToFilm comparison</title>
 <style>body{{max-width:900px;margin:60px auto;padding:0 24px;background:#080b13;color:#f5f7ff;font:16px system-ui}}
 h1{{font-size:48px}}p{{color:#9aa7bd}}table{{width:100%;border-collapse:collapse;background:#111725;border-radius:16px;overflow:hidden}}
 th,td{{padding:16px;text-align:left;border-bottom:1px solid #273149}}.regression,.removed{{color:#ff6b76}}.improvement{{color:#55d68b}}.added{{color:#5ee6d0}}</style></head>
-<body><p>VIDSPEC / REGRESSION REPORT</p><h1>{count} regression{suffix}</h1>
+<body><p>INKTOFILM / REGRESSION REPORT</p><h1>{count} regression{suffix}</h1>
 <p>{baseline}<br>↓<br>{candidate}</p><table><thead><tr><th>Case</th><th>Change</th><th>Before</th><th>After</th></tr></thead>
 <tbody>{rows}</tbody></table></body></html>""".format(
         count=result["regressions"],
@@ -88,4 +88,3 @@ th,td{{padding:16px;text-align:left;border-bottom:1px solid #273149}}.regression
 
 def output_paths(output: Path) -> Tuple[Path, Path]:
     return output / "comparison.json", output / "comparison.html"
-

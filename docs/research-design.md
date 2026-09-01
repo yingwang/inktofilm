@@ -1,11 +1,11 @@
 # From aggregate scores to evidence-producing video tests
 
-VidSpec is built around a simple distinction: a benchmark ranks models, while a test tells a model
+InkToFilm is built around a simple distinction: a benchmark ranks models, while a test tells a model
 developer what broke.
 
 ## The unit of evaluation
 
-A VidSpec case binds four things:
+An InkToFilm case binds four things:
 
 1. an input prompt or conditioning artifact;
 2. a generated video;
@@ -61,7 +61,6 @@ short window. Tests should disclose the horizon at which the first contradiction
 
 ## Human calibration
 
-Automated judges must periodically be checked against blinded pairwise human decisions. VidSpec
+Automated judges must periodically be checked against blinded pairwise human decisions. InkToFilm
 should preserve both judgments, disagreements, and confidence rather than overwriting one with the
 other. The goal is a diagnostic instrument, not a cosmetically precise score.
-

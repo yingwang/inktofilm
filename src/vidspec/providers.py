@@ -140,7 +140,7 @@ class FalMiniMaxGenerator:
             return importlib.import_module("fal_client")
         except ImportError as exc:
             raise ProviderError(
-                "fal-client is not installed; install VidSpec with 'pip install vidspec[fal]'"
+                "fal-client is not installed; install InkToFilm with 'pip install inktofilm[fal]'"
             ) from exc
 
     def generate(

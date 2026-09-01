@@ -1,6 +1,6 @@
 # Semantic evaluators
 
-VidSpec keeps semantic expectations in the suite and evaluator choice on the command line. This
+InkToFilm keeps semantic expectations in the suite and evaluator choice on the command line. This
 separation is intentional: opening an untrusted test suite must never execute a command or upload a
 video.
 
@@ -30,12 +30,12 @@ Use this for checked-in public fixtures, human calibration, or a result produced
 another environment:
 
 ```bash
-vidspec run suite.json \
+inktofilm run suite.json \
   --semantic-results semantic-results.json \
   --output reports/semantic
 ```
 
-VidSpec resamples the video, binds the cited frame indexes to their timestamps, and writes the
+InkToFilm resamples the video, binds the cited frame indexes to their timestamps, and writes the
 evidence thumbnails beside the HTML report.
 
 ## Run any VLM or research evaluator
@@ -43,7 +43,7 @@ evidence thumbnails beside the HTML report.
 Choose an executable explicitly:
 
 ```bash
-vidspec run suite.json \
+inktofilm run suite.json \
   --semantic-command "my-video-judge --model research-v3" \
   --semantic-timeout 300 \
   --output reports/semantic
@@ -60,7 +60,7 @@ frames. It also contains a `response_schema` example. A response has this shape:
     "model": "research-v3",
     "revision": "a1b2c3",
     "judge_prompt_hash": "sha256:…",
-    "sampling_policy": "six VidSpec frames"
+    "sampling_policy": "six InkToFilm frames"
   },
   "assertions": [
     {
@@ -77,7 +77,7 @@ frames. It also contains a `response_schema` example. A response has this shape:
 }
 ```
 
-VidSpec owns thresholding, missing-assertion errors, evidence paths, report rendering, and regression
+InkToFilm owns thresholding, missing-assertion errors, evidence paths, report rendering, and regression
 status. The evaluator owns perception and must disclose its name and revision.
 
 ## Privacy and trust boundary
@@ -88,5 +88,5 @@ status. The evaluator owns perception and must disclose its name and revision.
   prompt, and a remote-backed command may upload them.
 - Keep tokens in the evaluator process environment. Never place API keys, cookies, account names,
   or private URLs in a suite, result file, report, or repository.
-- Review public fixtures before committing them. VidSpec records evaluator provenance but cannot
+- Review public fixtures before committing them. InkToFilm records evaluator provenance but cannot
   prove that a third-party result is truthful.

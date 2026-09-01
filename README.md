@@ -1,26 +1,26 @@
 <p align="center">
-  <img src="docs/assets/vidspec-mark.svg" width="112" alt="VidSpec mark">
+  <img src="docs/assets/vidspec-mark.svg" width="112" alt="InkToFilm mark">
 </p>
 
-<h1 align="center">VidSpec</h1>
+<h1 align="center">InkToFilm</h1>
 
 <p align="center">
-  <strong>One prompt or screenplay. One finished film or TV episode.</strong><br>
-  VidSpec turns your story into shots, generates them, checks what the audience will see,<br>
+  <strong>One prompt or screenplay. One finished film.</strong><br>
+  InkToFilm turns your story into shots, generates them, checks what the audience will see,<br>
   fixes weak takes, and edits the approved footage into a film.
 </p>
 
 <p align="center">
-  <a href="https://github.com/yingwang/vidspec/actions/workflows/ci.yml"><img src="https://github.com/yingwang/vidspec/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/yingwang/inktofilm/actions/workflows/ci.yml"><img src="https://github.com/yingwang/inktofilm/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-5ee6d0" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/python-3.9%2B-9a8cff" alt="Python 3.9+">
 </p>
 
 <p align="center">
-  <img src="docs/assets/production-pipeline.svg" width="100%" alt="One story becomes a planned, generated, verified, and edited film in VidSpec">
+  <img src="docs/assets/production-pipeline.svg" width="100%" alt="One story becomes a planned, generated, verified, and edited film in InkToFilm">
 </p>
 
-Bring a one-line premise, a scene brief, or your own complete screenplay. VidSpec acts as the
+Bring a one-line premise, a scene brief, or your own complete screenplay. InkToFilm acts as the
 production system around the models you choose: it develops the story into a shootable plan,
 maintains the creative constraints, generates every shot, rejects broken takes with visible
 evidence, retries only what failed, and assembles the result into a final video.
@@ -36,9 +36,9 @@ scene-based, resumable pipeline is intended to scale to feature films and episod
 produce one scene at a time, carry a shared character and world bible across them, then assemble
 approved scenes into an episode or feature.
 
-## What VidSpec does
+## What InkToFilm does
 
-VidSpec treats filmmaking as a creative loop with testable delivery:
+InkToFilm treats filmmaking as a creative loop with testable delivery:
 
 - turn one idea, prompt, or screenplay into a structured production plan;
 - preserve character, world, visual-style, dialogue, and continuity requirements;
@@ -54,14 +54,14 @@ VidSpec treats filmmaking as a creative loop with testable delivery:
 - return non-zero exit codes when a regression should block CI.
 
 > [!IMPORTANT]
-> VidSpec does not claim video semantics have been solved. Media checks are deterministic. Learned
+> InkToFilm does not claim video semantics have been solved. Media checks are deterministic. Learned
 > judgments are only as reliable as the selected evaluator; every score keeps its rationale,
 > provenance, and cited frames. Production also preserves every shot attempt in a manifest.
 
 ## Make a film from one prompt or your own screenplay
 
 <p align="center">
-  <img src="docs/assets/report-preview.svg" width="100%" alt="VidSpec visual quality report with evidence for every reviewed shot">
+  <img src="docs/assets/report-preview.svg" width="100%" alt="InkToFilm visual quality report with evidence for every reviewed shot">
 </p>
 
 The default production stack uses an already authenticated
@@ -71,17 +71,17 @@ and FFmpeg for inspection and editing.
 
 ```bash
 python3 -m pip install -e '.[fal]'
-vidspec doctor
+inktofilm doctor
 
 # Start with one sentence, a treatment, or a complete screenplay
 printf 'A lone astronaut finds a living ocean beneath Europa.' > story.md
 
 # Safe first look: develop and inspect the production plan without paid generation
-vidspec produce story.md --plan-only -o productions/my-film
+inktofilm produce story.md --plan-only -o productions/my-film
 
 # Generate, judge, selectively retry, and edit the film
 export FAL_KEY="..."
-vidspec produce story.md -o productions/my-film
+inktofilm produce story.md -o productions/my-film
 open productions/my-film/index.html
 ```
 
@@ -96,10 +96,10 @@ exists to make the proposed shots and prompts reviewable before any generation b
 
 ### Bring your own models
 
-VidSpec never reads provider commands from the screenplay. A user must select them explicitly:
+InkToFilm never reads provider commands from the screenplay. A user must select them explicitly:
 
 ```bash
-vidspec produce screenplay.md \
+inktofilm produce screenplay.md \
   --planner-command "my-llm plan --json" \
   --video-command "my-video-model generate --json" \
   --judge-command "my-vlm judge --json" \
@@ -107,7 +107,7 @@ vidspec produce screenplay.md \
 ```
 
 The three adapters exchange documented JSON over stdin/stdout, making local models, another
-subscription CLI, or a private API wrapper usable without changing VidSpec. See
+subscription CLI, or a private API wrapper usable without changing InkToFilm. See
 [provider protocols](docs/provider-protocols.md).
 
 ## Production preview · *Great Havoc in Heaven*
@@ -144,7 +144,7 @@ The lower character score records a real limitation instead of hiding it: Wukong
 but his direction relative to the army is ambiguous. Replay the reviewed result deterministically:
 
 ```bash
-vidspec run examples/great-havoc-in-heaven/vidspec-shot-01.json \
+inktofilm run examples/great-havoc-in-heaven/vidspec-shot-01.json \
   --semantic-results examples/great-havoc-in-heaven/semantic-results-shot-01.json \
   --output reports/great-havoc-shot-01
 ```
@@ -155,20 +155,20 @@ fixture rather than being replaced by only a finished montage.
 
 ## Evaluation quick start
 
-VidSpec has no required Python dependencies. It uses `ffprobe` and `ffmpeg` for media inspection.
+InkToFilm has no required Python dependencies. It uses `ffprobe` and `ffmpeg` for media inspection.
 
 ```bash
 # macOS
 brew install ffmpeg
 
-# install VidSpec from source
-git clone https://github.com/yingwang/vidspec.git
-cd vidspec
+# install InkToFilm from source
+git clone https://github.com/yingwang/inktofilm.git
+cd inktofilm
 python3 -m pip install -e .
 
 # create a suite, edit its video path, then run it
-vidspec init
-vidspec run vidspec.json --output reports/latest
+inktofilm init
+inktofilm run inktofilm.json --output reports/latest
 open reports/latest/index.html
 ```
 
@@ -198,7 +198,7 @@ the landing-to-pointing action completed; is the thundercloud visible; do identi
 shot a continuous dolly-in; and is the image free of text and logos?
 
 ```bash
-vidspec run examples/journey-to-the-west/vidspec.json \
+inktofilm run examples/journey-to-the-west/vidspec.json \
   --semantic-results examples/journey-to-the-west/semantic-results.json \
   --output reports/journey-to-the-west
 ```
@@ -208,11 +208,11 @@ decision. Replay makes the example deterministic; replace `--semantic-results` w
 command to run a VLM live:
 
 <p align="center">
-  <img src="docs/assets/journey-to-the-west/semantic-report.png" width="100%" alt="VidSpec report with passing semantic assertions and cited frame evidence">
+  <img src="docs/assets/journey-to-the-west/semantic-report.png" width="100%" alt="InkToFilm report with passing semantic assertions and cited frame evidence">
 </p>
 
 ```bash
-vidspec run suite.json \
+inktofilm run suite.json \
   --semantic-command "my-video-judge --model research-v3" \
   --output reports/semantic
 ```
@@ -220,10 +220,10 @@ vidspec run suite.json \
 Or use the locally authenticated Codex subscription directly:
 
 ```bash
-vidspec run suite.json --semantic-codex --output reports/semantic
+inktofilm run suite.json --semantic-codex --output reports/semantic
 ```
 
-VidSpec samples frames, sends a documented JSON request over stdin, validates the evaluator's JSON
+InkToFilm samples frames, sends a documented JSON request over stdin, validates the evaluator's JSON
 response, applies suite-owned thresholds, and renders evidence thumbnails. A suite can never choose
 or execute the evaluator itself. See [semantic evaluator protocol](docs/semantic-evaluators.md).
 
@@ -234,7 +234,7 @@ one intentionally broken video with black and frozen segments:
 
 ```bash
 ./scripts/generate-fixtures.sh
-vidspec run examples/e2e.json --output reports/e2e
+inktofilm run examples/e2e.json --output reports/e2e
 ```
 
 The command is expected to return exit code `1`: the healthy case passes, while the broken fixture
@@ -293,10 +293,10 @@ auditable rather than becoming an unexplained model-generated number.
 ## Catch a regression
 
 ```bash
-vidspec run baseline.json -o reports/baseline
-vidspec run candidate.json -o reports/candidate
+inktofilm run baseline.json -o reports/baseline
+inktofilm run candidate.json -o reports/candidate
 
-vidspec compare \
+inktofilm compare \
   reports/baseline/report.json \
   reports/candidate/report.json \
   -o reports/comparison
@@ -309,12 +309,15 @@ diff and a human-readable comparison page.
 
 | Command | Purpose |
 | --- | --- |
-| `vidspec produce SCRIPT` | Plan, generate, judge, retry, and edit a short film. |
-| `vidspec doctor` | Check Codex, FFmpeg, fal client, and default credentials without exposing keys. |
-| `vidspec init [path]` | Create a documented starter suite without overwriting files. |
-| `vidspec probe VIDEO` | Print normalized FFprobe metadata as JSON. |
-| `vidspec run SUITE` | Execute media checks and optional semantic assertions; write JSON plus visual HTML. |
-| `vidspec compare OLD NEW` | Detect status regressions between two reports. |
+| `inktofilm produce SCRIPT` | Plan, generate, judge, retry, and edit a short film. |
+| `inktofilm doctor` | Check Codex, FFmpeg, fal client, and default credentials without exposing keys. |
+| `inktofilm init [path]` | Create a documented starter suite without overwriting files. |
+| `inktofilm probe VIDEO` | Print normalized FFprobe metadata as JSON. |
+| `inktofilm run SUITE` | Execute media checks and optional semantic assertions; write JSON plus visual HTML. |
+| `inktofilm compare OLD NEW` | Detect status regressions between two reports. |
+
+The legacy `vidspec` command remains an exact alias during the migration, and the Python import path
+stays `vidspec` for compatibility.
 
 Use `--fail-on never`, `warn`, `fail`, or `error` to control the CI threshold for a run.
 
@@ -325,7 +328,7 @@ flowchart LR
     S[screenplay.md] --> P[Production planner]
     P --> G[Video generator]
     G --> V[Generated videos]
-    Q[vidspec.json] --> R[Rule engine]
+    Q[inktofilm.json] --> R[Rule engine]
     V[Generated videos] --> F[FFprobe + FFmpeg]
     F --> FS[Evidence frame sampler]
     F --> R
@@ -342,12 +345,12 @@ The core is deliberately small: configuration, media adapters, a rule engine, se
 models, and reporters. Media subprocesses have narrow seams so tests and future remote runners can
 replace them without rewriting the engine.
 
-## What VidSpec is not
+## What InkToFilm is not
 
 - It is not another static leaderboard.
 - It does not hide judge prompts, metric provenance, or thresholds.
-- `vidspec run` does not upload videos or invoke a semantic provider by default.
-- `vidspec produce` invokes only providers selected on its command line and records the result.
+- `inktofilm run` does not upload videos or invoke a semantic provider by default.
+- `inktofilm produce` invokes only providers selected on its command line and records the result.
 - It does not let an untrusted suite execute evaluator commands.
 - It does not pretend that one aggregate score explains model behavior.
 

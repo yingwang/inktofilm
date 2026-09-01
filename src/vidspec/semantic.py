@@ -343,7 +343,7 @@ the evidence is ambiguous or temporal behavior cannot be established from sample
 Never infer identity, dialogue accuracy, or off-screen events without visible support.
 Return only the JSON object required by the output schema.
 
-VIDSPEC REQUEST
+INKTOFILM REQUEST
 """ + json.dumps(request, ensure_ascii=False, indent=2)
         try:
             raw = self.provider.run_json(

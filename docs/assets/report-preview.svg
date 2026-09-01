@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 820" role="img" aria-label="VidSpec report preview">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 820" role="img" aria-label="InkToFilm report preview">
   <defs>
     <linearGradient id="bg" x1="1100" y1="0" x2="320" y2="820" gradientUnits="userSpaceOnUse">
       <stop stop-color="#282052"/><stop offset=".42" stop-color="#080b13"/><stop offset="1" stop-color="#080b13"/>
@@ -7,7 +7,7 @@
   </defs>
   <rect width="1440" height="820" rx="28" fill="url(#bg)"/>
   <g font-family="Inter,system-ui,sans-serif">
-    <text x="80" y="78" fill="#5ee6d0" font-size="16" font-weight="800" letter-spacing="4">VIDSPEC / RUN REPORT</text>
+    <text x="80" y="78" fill="#5ee6d0" font-size="16" font-weight="800" letter-spacing="4">INKTOFILM / RUN REPORT</text>
     <text x="78" y="158" fill="#f7f9ff" font-size="64" font-weight="800" letter-spacing="-3">teapot-model-v2</text>
     <text x="82" y="196" fill="#98a5bd" font-size="18">Repeatable checks · localized evidence · regression gates</text>
     <circle cx="1300" cy="126" r="62" fill="#151b27" stroke="#ff6b76" stroke-width="9" opacity=".95"/>
@@ -40,4 +40,3 @@
     <text x="260" y="705" fill="#f7f9ff" font-size="16" font-weight="650">resolution</text><text x="760" y="705" fill="#c9d2e8" font-size="15">1280×720</text>
   </g>
 </svg>
-

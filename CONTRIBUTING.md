@@ -1,6 +1,6 @@
-# Contributing to VidSpec
+# Contributing to InkToFilm
 
-VidSpec is interested in evaluation code that is reproducible, inspectable, and useful during model
+InkToFilm is interested in evaluation code that is reproducible, inspectable, and useful during model
 development.
 
 ## Before opening a pull request
@@ -22,4 +22,3 @@ python3 -m venv .venv
 python -m pip install -e '.[dev]'
 pytest -q
 ```
-
