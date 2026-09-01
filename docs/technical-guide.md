@@ -98,7 +98,7 @@ inktofilm compare \
 
 ```mermaid
 flowchart LR
-    S[Prompt or screenplay] --> P[Codex planner]
+    S[Prompt or screenplay] --> P[Agent planner<br/>Claude Code or Codex]
     P --> G[Video generator]
     G --> V[Shot attempts]
     V --> M[FFmpeg media checks]

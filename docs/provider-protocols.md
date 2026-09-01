@@ -1,7 +1,8 @@
 # Production provider protocols
 
-InkToFilm includes Codex CLI planning and judging plus fal MiniMax H3 video generation. Each role can
-instead be supplied as an explicit command. Commands are never loaded from a screenplay or plan.
+InkToFilm includes Codex CLI planning and judging plus fal MiniMax H3 video generation, and a Claude
+Code agent plans and judges directly by supplying its own reviewed results. Each role can instead be
+supplied as an explicit command. Commands are never loaded from a screenplay or plan.
 
 ## Planner command
 
