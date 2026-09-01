@@ -22,6 +22,7 @@ from vidspec.production import (
     CodexProductionPlanner,
     CommandProductionPlanner,
     ProductionError,
+    parse_plan,
     safe_id,
 )
 from vidspec.providers import (
@@ -40,6 +41,7 @@ from vidspec.semantic import (
     CommandSemanticEvaluator,
     JsonSemanticEvaluator,
     SemanticEvaluationError,
+    sample_frames,
 )
 
 _STARTER = {
@@ -75,6 +77,24 @@ def _parser() -> argparse.ArgumentParser:
 
     probe = commands.add_parser("probe", help="print normalized video metadata")
     probe.add_argument("video")
+
+    frames = commands.add_parser(
+        "frames",
+        help="sample the evenly spaced frames a semantic judge would see, for review by eye",
+    )
+    frames.add_argument("video")
+    frames.add_argument(
+        "--count",
+        "-n",
+        type=int,
+        default=6,
+        help="number of frames, matching the suite's sample_frames (default: 6)",
+    )
+    frames.add_argument(
+        "--output",
+        "-o",
+        help="directory to hold the frames (default: a frames/ directory beside the video)",
+    )
 
     run = commands.add_parser("run", help="run a JSON test suite")
     run.add_argument("suite")
@@ -126,6 +146,27 @@ def _parser() -> argparse.ArgumentParser:
         "--plan-only",
         action="store_true",
         help="create script.md, plan.json, and manifest.json without spending video credits",
+    )
+    produce.add_argument(
+        "--plan",
+        metavar="PLAN_JSON",
+        help="use an existing production plan instead of running a planner",
+    )
+    produce.add_argument(
+        "--stills-only",
+        action="store_true",
+        help="render the portraits and stills, then stop before any video credit is spent",
+    )
+    produce.add_argument(
+        "--reshoot",
+        action="append",
+        metavar="SHOT_ID",
+        help="generate a fresh attempt for this shot even though one exists; repeat for more",
+    )
+    produce.add_argument(
+        "--no-judge",
+        action="store_true",
+        help="skip semantic judging: run media checks only and leave the frames to a reviewer",
     )
     produce.add_argument(
         "--max-retries",
@@ -245,6 +286,16 @@ def _run(args: argparse.Namespace) -> int:
         print(json.dumps(probe.to_dict(), indent=2))
         return 0
 
+    if args.command == "frames":
+        if not 1 <= args.count <= 24:
+            raise ConfigurationError("--count must be between 1 and 24")
+        video = Path(args.video).resolve()
+        probe = probe_video(video)
+        root = Path(args.output).resolve() if args.output else video.parent / "frames"
+        for frame in sample_frames(video, probe.duration_seconds, args.count, root, video.stem):
+            print(f"{frame.index:02d} {frame.timestamp_seconds:8.3f}s {frame.path}")
+        return 0
+
     if args.command == "run":
         suite = load_suite(Path(args.suite))
         output = Path(args.output)
@@ -304,14 +355,23 @@ def _run(args: argparse.Namespace) -> int:
             model=args.codex_model,
             timeout_seconds=args.codex_timeout,
         )
-        planner = (
-            CommandProductionPlanner.from_string(
+        plan = None
+        planner = None
+        if args.plan:
+            try:
+                raw_plan = json.loads(Path(args.plan).read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                raise ProductionError(f"Plan file is not valid JSON: {exc}") from exc
+            if not isinstance(raw_plan, dict):
+                raise ProductionError("Plan file must hold a JSON object")
+            plan = parse_plan(raw_plan)
+        elif args.planner_command:
+            planner = CommandProductionPlanner.from_string(
                 args.planner_command,
                 timeout_seconds=args.codex_timeout,
             )
-            if args.planner_command
-            else CodexProductionPlanner(codex)
-        )
+        else:
+            planner = CodexProductionPlanner(codex)
         faces = _face_map(args.face)
         generator = None
         evaluator = None
@@ -329,7 +389,9 @@ def _run(args: argparse.Namespace) -> int:
                     resolution=args.resolution,
                 )
             )
-            if args.judge_command:
+            if args.no_judge:
+                evaluator = None
+            elif args.judge_command:
                 evaluator = CommandSemanticEvaluator.from_string(
                     args.judge_command,
                     timeout_seconds=args.codex_timeout,
@@ -363,9 +425,22 @@ def _run(args: argparse.Namespace) -> int:
             Path(args.output),
             max_retries=args.max_retries,
             plan_only=args.plan_only,
+            plan=plan,
+            stills_only=args.stills_only,
+            reshoot=[safe_id(value) for value in args.reshoot or []],
+            unjudged=args.no_judge,
         )
-        print(f"{result.plan.title}: {'PLANNED' if args.plan_only else result.report.status.upper()}")
+        if result.report is not None:
+            stage = result.report.status.upper()
+        elif args.plan_only:
+            stage = "PLANNED"
+        else:
+            stage = "STILLS READY"
+        print(f"{result.plan.title}: {stage}")
         print(f"Manifest: {result.manifest}")
+        if result.stills and result.report is None:
+            for shot_id, still in result.stills.items():
+                print(f"Still {shot_id}: {still}")
         if result.final_video is not None:
             print(f"Film: {result.final_video}")
             print(f"Report: {result.output_dir / 'index.html'}")

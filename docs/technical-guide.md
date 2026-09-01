@@ -45,6 +45,34 @@ retry failed shots. A retry re-shoots the clip and keeps the still, since the st
 composition and only the motion failed. Credentials are read from the environment and are not written
 to the bundle.
 
+### Staged and resumable production
+
+The bundle is resumable: a portrait, still, or shot attempt that already exists in the output
+directory is reused, so the same command can be run again after a review and only the missing work
+is generated. Four flags turn that into a workflow an agent can drive one stage at a time:
+
+```bash
+inktofilm produce screenplay.md --plan plan.json --stills-only -o productions/my-film
+inktofilm produce screenplay.md --plan plan.json --no-judge -o productions/my-film
+inktofilm frames productions/my-film/shots/shot-02-attempt-1.mp4
+inktofilm run productions/my-film/suite.json --semantic-results reviewed.json -o productions/my-film/review
+inktofilm produce screenplay.md --plan plan.json --no-judge --reshoot shot-02 -o productions/my-film
+```
+
+- `--plan PLAN_JSON` uses a production plan the agent wrote itself instead of running a planner.
+- `--stills-only` renders the portraits and stills, then stops before any video credit is spent.
+  Delete a still that failed review, sharpen its prompt, and run again; the others are kept.
+- `--no-judge` shoots without a semantic evaluator: media checks still run, the newest attempt of
+  each shot is selected, `suite.json` is written for the selected clips, and `final.mp4` is a plain
+  cut. Judging then happens by replaying reviewed results on that suite.
+- `--reshoot SHOT_ID` gives one shot a fresh attempt numbered after the ones on disk, and reuses
+  everything else. Repeat the flag for more shots.
+- `inktofilm frames VIDEO` samples the evenly spaced frames a semantic judge sees, so a reviewer can
+  look at exactly the evidence the verdict will cite. `--count` matches the suite's `sample_frames`.
+
+Each video prompt describes only the characters the shot lists under `characters`, which keeps a
+single-character shot from acquiring the rest of the cast in its background.
+
 ## Stills, faces, and chained shots
 
 The plan decides these per shot, and the manifest records what each shot actually used.

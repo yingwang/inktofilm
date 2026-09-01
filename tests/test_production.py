@@ -563,3 +563,183 @@ def test_orchestrator_rejects_a_face_for_a_character_the_plan_does_not_have(tmp_
     )
     with pytest.raises(ProductionError, match="stranger"):
         orchestrator.produce("A traveler reaches a temple.", tmp_path / "production")
+
+
+def _staged_plan():
+    return ProductionPlan(
+        title="Lantern Test",
+        visual_style="cinematic",
+        aspect_ratio="16:9",
+        characters=[
+            CharacterSpec("traveler", "Traveler", "blue robe", "portrait of the traveler"),
+            CharacterSpec("monk", "Monk", "grey robe", "portrait of the monk"),
+        ],
+        shots=[
+            ShotSpec(
+                "arrival",
+                "temple gate",
+                5,
+                "Traveler enters",
+                "",
+                ["Traveler is visible"],
+                still_prompt="wide on the gate",
+                characters=["traveler"],
+            ),
+            ShotSpec(
+                "greeting",
+                "temple gate",
+                5,
+                "The monk bows",
+                "",
+                ["The monk bows"],
+                still_prompt="two-shot at the gate",
+                characters=["traveler", "monk"],
+            ),
+        ],
+    )
+
+
+class _Images:
+    def __init__(self):
+        self.made = []
+
+    def generate(self, prompt, destination, aspect_ratio="16:9", references=()):
+        self.made.append(destination.name)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(b"still")
+        return destination
+
+
+class _Generator:
+    def __init__(self):
+        self.shot = []
+
+    def generate(self, prompt, duration_seconds, aspect_ratio, destination):
+        raise AssertionError("a shot with a still must be shot from that still")
+
+    def generate_from_image(self, prompt, duration_seconds, start_image, destination, end_image=None):
+        self.shot.append(destination.name)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(b"video")
+        return destination
+
+
+class _Editor:
+    def concat(self, clips, destination):
+        destination.write_bytes(b"film:" + b",".join(clip.name.encode() for clip in clips))
+        return destination
+
+
+def test_orchestrator_takes_a_written_plan_and_stops_after_stills(tmp_path):
+    images = _Images()
+    generator = _Generator()
+    result = ProductionOrchestrator(
+        planner=None,
+        generator=generator,
+        evaluator=None,
+        editor=_Editor(),
+        image_generator=images,
+    ).produce("script", tmp_path / "production", plan=_staged_plan(), stills_only=True)
+
+    # Nothing was planned by a model and no video credit was spent.
+    assert images.made == ["traveler.jpg", "monk.jpg", "arrival.jpg", "greeting.jpg"]
+    assert generator.shot == []
+    assert result.final_video is None and result.report is None
+    manifest = json.loads(result.manifest.read_text(encoding="utf-8"))
+    assert manifest["status"] == "stills"
+    assert manifest["stills"] == {"arrival": "stills/arrival.jpg", "greeting": "stills/greeting.jpg"}
+    assert json.loads((result.output_dir / "plan.json").read_text(encoding="utf-8"))["title"] == "Lantern Test"
+
+
+def test_orchestrator_requires_a_planner_or_a_plan(tmp_path):
+    with pytest.raises(ProductionError, match="planner or an existing plan"):
+        ProductionOrchestrator(planner=None, generator=object(), evaluator=object()).produce(
+            "script", tmp_path / "production"
+        )
+
+
+def test_orchestrator_reuses_reviewed_stills_and_attempts_and_reshoots_on_request(tmp_path, monkeypatch):
+    def fake_evaluate(spec, base_dir, **kwargs):
+        return CaseReport(spec.case_id, spec.video, spec.prompt, None, [])
+
+    monkeypatch.setattr("vidspec.produce.evaluate_case", fake_evaluate)
+    output = tmp_path / "production"
+
+    def run(images, generator, **kwargs):
+        return ProductionOrchestrator(
+            planner=None,
+            generator=generator,
+            evaluator=None,
+            editor=_Editor(),
+            image_generator=images,
+        ).produce("script", output, plan=_staged_plan(), unjudged=True, max_retries=0, **kwargs)
+
+    first_images, first_generator = _Images(), _Generator()
+    first = run(first_images, first_generator)
+    assert first_images.made == ["traveler.jpg", "monk.jpg", "arrival.jpg", "greeting.jpg"]
+    assert first_generator.shot == ["arrival-attempt-1.mp4", "greeting-attempt-1.mp4"]
+
+    # The reviewer rejects one still and deletes it; only that still is rendered again, and
+    # no shot is regenerated because every attempt is already on disk.
+    (output / "stills" / "greeting.jpg").unlink()
+    second_images, second_generator = _Images(), _Generator()
+    second = run(second_images, second_generator)
+    assert second_images.made == ["greeting.jpg"]
+    assert second_generator.shot == []
+    manifest = json.loads(second.manifest.read_text(encoding="utf-8"))
+    assert [shot["attempts"][0]["generated"] for shot in manifest["shots"]] == [False, False]
+
+    # A reshoot gets the next attempt number and becomes the selected clip.
+    third_generator = _Generator()
+    third = run(_Images(), third_generator, reshoot=["greeting"])
+    assert third_generator.shot == ["greeting-attempt-2.mp4"]
+    manifest = json.loads(third.manifest.read_text(encoding="utf-8"))
+    assert manifest["shots"][1]["selected_video"] == "shots/greeting-attempt-2.mp4"
+    (attempt,) = manifest["shots"][1]["attempts"]
+    assert attempt["attempt"] == 2 and attempt["generated"] is True
+    assert attempt["video"] == "shots/greeting-attempt-2.mp4"
+    assert manifest["judged"] is False
+    assert third.final_video.read_bytes() == b"film:arrival-attempt-1.mp4,greeting-attempt-2.mp4"
+    assert first.final_video == third.final_video
+
+    with pytest.raises(ProductionError, match="finale"):
+        run(_Images(), _Generator(), reshoot=["finale"])
+
+
+def test_orchestrator_writes_a_replayable_suite_for_the_selected_clips(tmp_path, monkeypatch):
+    def fake_evaluate(spec, base_dir, **kwargs):
+        return CaseReport(spec.case_id, spec.video, spec.prompt, None, [])
+
+    monkeypatch.setattr("vidspec.produce.evaluate_case", fake_evaluate)
+    result = ProductionOrchestrator(
+        planner=None,
+        generator=_Generator(),
+        evaluator=None,
+        editor=_Editor(),
+        image_generator=_Images(),
+    ).produce("script", tmp_path / "production", plan=_staged_plan(), unjudged=True)
+
+    from vidspec.config import load_suite
+
+    suite = load_suite(result.output_dir / "suite.json")
+    assert [case.case_id for case in suite.cases] == ["arrival", "greeting"]
+    assert suite.cases[0].video == "shots/arrival-attempt-1.mp4"
+    assert suite.cases[1].semantic.assertions[0].description == "The monk bows"
+    assert suite.cases[1].semantic.sample_frames == 6
+
+
+def test_orchestrator_refuses_to_shoot_without_a_judge_unless_told_to(tmp_path):
+    with pytest.raises(ProviderError, match="no-judge"):
+        ProductionOrchestrator(planner=None, generator=object(), evaluator=None).produce(
+            "script", tmp_path / "production", plan=_staged_plan()
+        )
+
+
+def test_generation_prompt_describes_only_the_cast_the_shot_lists():
+    from vidspec.produce import _generation_prompt
+
+    plan = _staged_plan()
+    solo = _generation_prompt(plan, plan.shots[0])
+    both = _generation_prompt(plan, plan.shots[1])
+    assert "Traveler: blue robe" in solo and "Monk" not in solo
+    assert "Traveler: blue robe" in both and "Monk: grey robe" in both

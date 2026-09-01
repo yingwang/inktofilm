@@ -25,7 +25,9 @@ https://github.com/yingwang/inktofilm and a project-local environment; do not mo
 configuration. Verify FFmpeg, FFprobe, and the fal client before production; `inktofilm doctor`
 reports what is missing.
 
-1. Look for `FAL_KEY` in the process environment, then in a project-local `.env`.
+1. Look for `FAL_KEY` in the process environment, then in a project-local `.env`. The CLI reads only
+   the environment, so load the file into the shell that runs it, for example with
+   `set -a; . ./.env; set +a`, and never print the value.
 2. If it is absent, ask the user once for their fal API key. When a signed-in browser is available,
    offer to create and copy an API-scoped key with explicit approval instead of making the user expose
    it in chat.
@@ -33,18 +35,21 @@ reports what is missing.
    `.env` with mode `0600`, and verify Git ignores the file before any commit or push.
 4. Read current provider pricing, estimate the number of generated seconds and retry allowance, state
    a hard spending cap, and obtain confirmation immediately before the first paid request. Stop before
-   exceeding the approved cap.
+   exceeding the approved cap. fal bills MiniMax H3 Max per generated second and nano-banana per
+   still, so a five-shot 30-second film with stills and a few retries usually costs a few dollars;
+   check the model pages for the current rates rather than assuming.
 
 ## Make the film
 
 Do the creative and judging work with the agent that is running this skill, and use fal MiniMax H3
 Max as the default video generator, while respecting any model the user explicitly chooses.
 
-- In Claude Code, you are the planner and the judge. Write the screenplay, shot plan, and test suite
-  yourself. To judge a shot, sample the same evenly spaced frames the evaluator uses, inspect them
-  directly, write the reviewed per-case results JSON, and run the suite with `--semantic-results`.
-  Score only what is visible in the sampled frames, and record your own model name in the result
-  provenance.
+- In Claude Code, you are the planner and the judge. Write the screenplay, the plan, and the test
+  suite yourself, and work through the stages below so that every image is looked at before a video
+  credit is spent on it. To judge a shot, sample the same evenly spaced frames the evaluator uses
+  with `inktofilm frames`, inspect them directly, write the reviewed per-case results JSON, and
+  replay it with `inktofilm run suite.json --semantic-results`. Score only what is visible in the
+  sampled frames, and record your own model name in the result provenance.
 - In Codex, the CLI's built-in integration does the same work through the authenticated Codex CLI:
   `inktofilm run --semantic-codex` for judging, and the default planner and judge of
   `inktofilm produce`.
@@ -57,6 +62,48 @@ Max as the default video generator, while respecting any model the user explicit
 - Whichever judge runs, it only scores the assertions the plan wrote. Write assertions for the
   failures that actually recur, including invented on-screen text, letterboxing baked into a frame,
   a costume drifting toward the wrong culture, and an expression that contradicts the scene.
+
+### The staged workflow
+
+`inktofilm produce` is resumable: portraits, stills, and shot attempts that already exist in the
+output directory are reused, so the same command can be run again after a review and only the
+missing work is paid for.
+
+1. Write `script.md` and `plan.json` yourself, then
+   `inktofilm produce script.md --plan plan.json --stills-only -o <project>`. This renders one
+   portrait per character and one still per shot and stops. Open every image. A portrait that is not
+   the character, a still with the wrong framing, a face the wrong age, an extra person, or text on a
+   prop is cheap to fix here and expensive to fix in a clip: delete the file, sharpen its prompt, and
+   run the same command again.
+2. Shoot with `--no-judge` when you will judge in the loop, or with `--judge-claude` when the run is
+   unattended. `--no-judge` runs the media checks, selects the newest attempt of each shot, writes
+   `suite.json` for the selected clips, and assembles a plain-cut `final.mp4`.
+3. For each shot, `inktofilm frames shots/<shot>-attempt-1.mp4` samples the frames a judge would see.
+   Look at them, write the reviewed results file, and replay it with
+   `inktofilm run suite.json --semantic-results reviewed.json -o review`.
+4. Regenerate only what failed: `--reshoot <shot_id>` gives that shot a fresh attempt, numbered after
+   the ones on disk, and everything else is reused. Edit the prompt first when the failure was the
+   prompt's fault.
+5. Assemble the final edit yourself with FFmpeg when the film needs more than a plain cut: overlaps,
+   sound bridges, dialogue, and a locally typeset title card.
+
+### Writing prompts that survive generation
+
+- The cast bible in each video prompt covers only the characters the shot lists, so list them. A
+  single-character shot that describes the whole cast tends to seat the others in the background.
+- Reference portraits are handed to the still editor in the order of the shot's `characters`. Refer
+  to them by that order in the still prompt, for example "the woman from the first reference image",
+  and restate her hair, skin, and costume anyway; the reference fixes identity, the words fix the
+  frame.
+- Describe a still as a photograph: framing, where each person is, what they are doing at the instant
+  the shot opens, the light, the lens. Say "no text" on anything that could carry it, such as a
+  paddle, a sign, or a screen.
+- Open a video prompt with "Begin exactly on the supplied frame" when the shot has a still, and say
+  who keeps the same face, hair, and clothing. Name the number of props that must not multiply.
+- MiniMax H3 Max generates native sound and lip-synced speech. For a spoken line, quote the exact
+  words in the prompt, name the speaker, and ask for natural lip movement and no subtitles; put the
+  same words in the plan's `dialogue` field so the judge can check them. Accepted durations are 5 to
+  15 seconds per shot at 480P or 768P; two lines of dialogue need six seconds rather than five.
 
 - Expand a short idea into a screenplay, character and world bible, and a sequence of independently
   generatable shots. Preserve the user's named characters, dialogue, visual rules, and ending.
@@ -99,7 +146,9 @@ Max as the default video generator, while respecting any model the user explicit
 
 For the current H3 workflow, use InkToFilm's provider and production APIs rather than recreating fal
 requests ad hoc. Keep generated prompts, reports, and media inside the user's chosen project. Treat
-private screenplays and reference media as private unless the user explicitly authorizes publication.
+private screenplays and reference media as private unless the user explicitly authorizes publication:
+a production directory inside the checkout is ignored by Git, and a private story must stay out of
+commits, public example folders, and published reports.
 
 ## Deliver
 
