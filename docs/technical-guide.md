@@ -67,6 +67,8 @@ inktofilm produce screenplay.md --plan plan.json --no-judge --reshoot shot-02 -o
   cut. Judging then happens by replaying reviewed results on that suite.
 - `--reshoot SHOT_ID` gives one shot a fresh attempt numbered after the ones on disk, and reuses
   everything else. Repeat the flag for more shots.
+- `--select SHOT_ID=ATTEMPT` makes an existing attempt the shot's clip when a reviewer prefers it to
+  the newest one. Nothing is generated for a selected shot, and it cannot also be reshot.
 - `inktofilm frames VIDEO` samples the evenly spaced frames a semantic judge sees, so a reviewer can
   look at exactly the evidence the verdict will cite. `--count` matches the suite's `sample_frames`.
 

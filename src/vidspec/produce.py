@@ -325,6 +325,7 @@ class ProductionOrchestrator:
         stills_only: bool = False,
         reshoot: Sequence[str] = (),
         unjudged: bool = False,
+        select: Optional[Mapping[str, int]] = None,
     ) -> ProductionResult:
         """Run the production, or one stage of it, inside `output_dir`.
 
@@ -335,7 +336,9 @@ class ProductionOrchestrator:
         stops once every portrait and still exists, before any video credit is spent. `reshoot`
         names shots that must get a fresh attempt even though one exists. `unjudged` allows a
         run without a semantic evaluator: media checks still run, the newest attempt of each shot
-        is selected, and judging is left to whoever reviews the sampled frames afterwards.
+        is selected, and judging is left to whoever reviews the sampled frames afterwards. `select`
+        maps a shot id to the attempt number a reviewer has chosen; that attempt is evaluated and
+        used as the shot's clip, and nothing is generated for it.
         """
         if max_retries < 0 or max_retries > 5:
             raise ProductionError("max_retries must be between 0 and 5")
@@ -345,11 +348,22 @@ class ProductionOrchestrator:
             if self.planner is None:
                 raise ProductionError("A planner or an existing plan is required")
             plan = self.planner.plan(script)
-        unknown_reshoots = sorted(set(reshoot) - {shot.shot_id for shot in plan.shots})
-        if unknown_reshoots:
+        select = dict(select or {})
+        shot_ids = {shot.shot_id for shot in plan.shots}
+        unknown_shots = sorted((set(reshoot) | set(select)) - shot_ids)
+        if unknown_shots:
             raise ProductionError(
-                f"No shot in this plan is named {', '.join(unknown_reshoots)}"
+                f"No shot in this plan is named {', '.join(unknown_shots)}"
             )
+        both = sorted(set(reshoot) & set(select))
+        if both:
+            raise ProductionError(
+                f"Cannot both reshoot and select an attempt for {', '.join(both)}"
+            )
+        for shot_id, attempt in select.items():
+            chosen = output_dir / "shots" / f"{shot_id}-attempt-{attempt}.mp4"
+            if not chosen.is_file():
+                raise ProductionError(f"Selected attempt does not exist: {chosen.name}")
         plan_path = output_dir / "plan.json"
         plan_path.write_text(
             json.dumps(plan.to_dict(), ensure_ascii=False, indent=2) + "\n",
@@ -421,10 +435,17 @@ class ProductionOrchestrator:
             selected_report: Optional[CaseReport] = None
             selected_case: Optional[CaseSpec] = None
             # A reshoot continues numbering after the attempts on disk, so nothing is lost and
-            # the fresh take is the one the loop evaluates. Otherwise existing attempts are
-            # evaluated in order and only a missing attempt is generated.
-            first = self._existing_attempts(output_dir, shot.shot_id) + 1 if shot.shot_id in reshoot else 1
-            for attempt in range(first, first + max_retries + 1):
+            # the fresh take is the one the loop evaluates. A selected attempt is the only one
+            # considered. Otherwise existing attempts are evaluated in order and only a missing
+            # attempt is generated.
+            if shot.shot_id in select:
+                candidates: Sequence[int] = (select[shot.shot_id],)
+            elif shot.shot_id in reshoot:
+                first = self._existing_attempts(output_dir, shot.shot_id) + 1
+                candidates = range(first, first + max_retries + 1)
+            else:
+                candidates = range(1, max_retries + 2)
+            for attempt in candidates:
                 prompt = _generation_prompt(plan, shot, feedback)
                 clip_path = output_dir / "shots" / f"{shot.shot_id}-attempt-{attempt}.mp4"
                 generated = not clip_path.is_file()

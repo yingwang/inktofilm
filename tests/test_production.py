@@ -743,3 +743,45 @@ def test_generation_prompt_describes_only_the_cast_the_shot_lists():
     both = _generation_prompt(plan, plan.shots[1])
     assert "Traveler: blue robe" in solo and "Monk" not in solo
     assert "Traveler: blue robe" in both and "Monk: grey robe" in both
+
+
+def test_orchestrator_uses_the_attempt_a_reviewer_selected(tmp_path, monkeypatch):
+    def fake_evaluate(spec, base_dir, **kwargs):
+        return CaseReport(spec.case_id, spec.video, spec.prompt, None, [])
+
+    monkeypatch.setattr("vidspec.produce.evaluate_case", fake_evaluate)
+    output = tmp_path / "production"
+
+    def run(generator, **kwargs):
+        return ProductionOrchestrator(
+            planner=None,
+            generator=generator,
+            evaluator=None,
+            editor=_Editor(),
+            image_generator=_Images(),
+        ).produce("script", output, plan=_staged_plan(), unjudged=True, max_retries=0, **kwargs)
+
+    run(_Generator())
+    run(_Generator(), reshoot=["greeting"])
+    # The reviewer prefers the first take after all: nothing is generated and take 1 is the clip.
+    chooser = _Generator()
+    result = run(chooser, select={"greeting": 1})
+    assert chooser.shot == []
+    manifest = json.loads(result.manifest.read_text(encoding="utf-8"))
+    assert manifest["shots"][1]["selected_video"] == "shots/greeting-attempt-1.mp4"
+    assert [a["attempt"] for a in manifest["shots"][1]["attempts"]] == [1]
+    assert result.final_video.read_bytes() == b"film:arrival-attempt-1.mp4,greeting-attempt-1.mp4"
+
+    with pytest.raises(ProductionError, match="does not exist"):
+        run(_Generator(), select={"greeting": 9})
+    with pytest.raises(ProductionError, match="both reshoot and select"):
+        run(_Generator(), select={"greeting": 1}, reshoot=["greeting"])
+
+
+def test_cli_selection_map_rejects_malformed_values():
+    from vidspec.cli import _selection_map
+
+    assert _selection_map(["Shot Two=2", "arrival=1"]) == {"shot-two": 2, "arrival": 1}
+    for bad in ("arrival", "arrival=", "arrival=zero", "arrival=0"):
+        with pytest.raises(ProductionError, match="SHOT_ID=ATTEMPT"):
+            _selection_map([bad])

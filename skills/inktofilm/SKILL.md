@@ -83,7 +83,9 @@ missing work is paid for.
    `inktofilm run suite.json --semantic-results reviewed.json -o review`.
 4. Regenerate only what failed: `--reshoot <shot_id>` gives that shot a fresh attempt, numbered after
    the ones on disk, and everything else is reused. Edit the prompt first when the failure was the
-   prompt's fault.
+   prompt's fault. Judge the new take against the old one rather than assuming it is better; when
+   the earlier take wins, `--select <shot_id>=<attempt>` makes it the shot's clip again, so the
+   manifest, `suite.json`, and `final.mp4` all follow the reviewer's choice.
 5. Assemble the final edit yourself with FFmpeg when the film needs more than a plain cut: overlaps,
    sound bridges, dialogue, and a locally typeset title card.
 

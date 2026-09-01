@@ -169,6 +169,12 @@ def _parser() -> argparse.ArgumentParser:
         help="skip semantic judging: run media checks only and leave the frames to a reviewer",
     )
     produce.add_argument(
+        "--select",
+        action="append",
+        metavar="SHOT_ID=ATTEMPT",
+        help="use this existing attempt as the shot's clip instead of the newest; repeat for more",
+    )
+    produce.add_argument(
         "--max-retries",
         type=int,
         default=1,
@@ -268,6 +274,20 @@ def _face_map(values: Optional[List[str]]) -> Dict[str, Path]:
             raise ProductionError(f"--face photo does not exist: {path}")
         faces[safe_id(character_id.strip())] = path
     return faces
+
+
+def _selection_map(values: Optional[List[str]]) -> Dict[str, int]:
+    selection: Dict[str, int] = {}
+    for value in values or []:
+        shot_id, separator, raw_attempt = value.partition("=")
+        try:
+            attempt = int(raw_attempt)
+        except ValueError:
+            attempt = 0
+        if not separator or not shot_id.strip() or attempt < 1:
+            raise ProductionError(f"--select expects SHOT_ID=ATTEMPT, got '{value}'")
+        selection[safe_id(shot_id.strip())] = attempt
+    return selection
 
 
 def _run(args: argparse.Namespace) -> int:
@@ -429,6 +449,7 @@ def _run(args: argparse.Namespace) -> int:
             stills_only=args.stills_only,
             reshoot=[safe_id(value) for value in args.reshoot or []],
             unjudged=args.no_judge,
+            select=_selection_map(args.select),
         )
         if result.report is not None:
             stage = result.report.status.upper()
