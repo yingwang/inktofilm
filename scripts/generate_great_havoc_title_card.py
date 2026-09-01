@@ -152,7 +152,7 @@ def render(destination: Path, preview_at: float | None) -> None:
     command = [
         "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
         "-f", "lavfi", "-t", f"{DURATION}",
-        "-i", f"anullsrc=channel_layout=stereo:sample_rate=48000",
+        "-i", "anullsrc=channel_layout=stereo:sample_rate=48000",
         "-filter_complex", filtergraph(),
         "-map", "[vout]", "-map", "0:a",
         "-c:v", "libx264", "-preset", "slow", "-crf", "16",

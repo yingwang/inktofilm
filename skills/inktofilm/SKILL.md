@@ -55,10 +55,23 @@ Max as the default video generator, while respecting any model the user explicit
   generatable shots. Preserve the user's named characters, dialogue, visual rules, and ending.
 - Turn each shot into a self-contained prompt with continuity anchors and explicit observable
   requirements. Keep title cards and other exact text for local post-production.
-- Choose continuity method shot by shot. When action directly continues, seed the next shot from a
-  stable frame near the end of the previous clip rather than blindly using the literal final frame.
-  Use a clean character reference when only identity must persist, and keep text-to-video freedom for
-  a new location, scale, time, or composition. Do not chain every shot through its predecessor.
+- Settle the look as stills before spending video credits. Render one clean reference portrait per
+  recurring character, edit every shot's opening still from those portraits, and generate the shot
+  from its own still. Framing, costume, and light are cheap to correct in an image and expensive to
+  correct in a clip, and a still that is reused as a neighbour's end frame makes a re-shoot local.
+- Choose continuity method shot by shot. When action directly continues, hand the next shot's still
+  to the generator as this shot's mandated last frame, so the two clips meet on one image; failing
+  that, seed the next shot from a stable frame near the end of the previous clip rather than blindly
+  using the literal final frame. Use a clean character reference when only identity must persist, and
+  keep text-to-video freedom for a new location, scale, time, or composition. Do not chain every shot
+  through its predecessor.
+- Put a user's own photographed face into a film only where it can survive. Swap it on close and
+  tight-medium shots, and leave wide shots to the generated face: below roughly a tight medium the
+  face covers too few pixels, and the attempt reads as deformed rather than as a likeness. Ask for
+  the photo once, pass it by path, and never place it or its description into a model prompt. If a
+  swapped face looks uncanny rather than merely wrong, suspect the proportions of the base face
+  rather than the swap: a base face narrower than the supplied one stretches the features to fill it.
+  Fix it by constraining the base still's face shape and feature spacing, then swap again.
 - Generate the planned shots. For every shot, run media checks and evidence-backed semantic checks
   derived from the screenplay, including required characters, setting, action, camera intent, text,
   and visible defects.

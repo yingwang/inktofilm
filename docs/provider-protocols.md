@@ -39,6 +39,37 @@ The command should write a non-empty video at `destination`. Alternatively it ma
 bundle. URLs are intentionally not accepted by this adapter; downloading and authentication remain
 inside the user's provider wrapper.
 
+When the shot has a still, the request carries that still instead of an aspect ratio, because the
+still already fixes the frame:
+
+```json
+{
+  "schema_version": "1.0",
+  "prompt": "...",
+  "duration_seconds": 5,
+  "start_image": "/absolute/path/to/opening-frame.jpg",
+  "end_image": "/absolute/path/to/closing-frame.jpg",
+  "destination": "/absolute/path/to/shot.mp4"
+}
+```
+
+`start_image` is the frame the shot opens on. `end_image` appears only where the plan chains this
+shot into the next one, and is the frame the shot must land on, so the next clip begins on the image
+this one ended with. A command that cannot condition on images should ignore both keys and generate
+from `prompt` alone; InkToFilm only sends this shape to commands, and falls back to the plain request
+for any generator without a `generate_from_image` method.
+
+## Stills and faces
+
+The default still provider is fal nano-banana, selected with `--image-model` and
+`--image-edit-model`, and the default face-swap provider is fal, selected with `--face-swap-model`.
+`--no-stills` skips both and shoots every shot from text alone.
+
+`--face CHARACTER_ID=PATH` supplies a photographed face for one character. The file is uploaded to
+the face-swap model and to nothing else. It is never written into a prompt, never sent to the
+planner or the judge, and never copied into the production bundle, so a private photograph does not
+travel with a shared film. InkToFilm rejects a `--face` naming a character the plan does not have.
+
 ## Judge command
 
 `--judge-command` uses the same request and response contract as `inktofilm run --semantic-command`.

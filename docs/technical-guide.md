@@ -27,15 +27,43 @@ inktofilm produce screenplay.md --plan-only -o productions/my-film
 inktofilm produce screenplay.md -o productions/my-film
 ```
 
-The production bundle contains the source screenplay, structured plan, generated attempts, evidence
-frames, quality report, manifest, and `final.mp4`. Planning and semantic review default to the locally
-authenticated Codex CLI. In Claude Code, the running agent normally plans and judges directly instead:
-it writes the plan and suite itself, inspects the sampled evidence frames, and replays its reviewed
-verdicts through `--semantic-results`. Video generation defaults to `minimax/h3-max/text-to-video`
-through the user's fal account.
+The production bundle contains the source screenplay, structured plan, character portraits under
+`references/`, shot stills under `stills/`, generated attempts, evidence frames, quality report,
+manifest, and `final.mp4`. Planning and semantic review default to the locally authenticated Codex
+CLI. In Claude Code, the running agent normally plans and judges directly instead: it writes the plan
+and suite itself, inspects the sampled evidence frames, and replays its reviewed verdicts through
+`--semantic-results`. Video generation defaults to `minimax/h3-max/text-to-video` through the user's
+fal account, and to `minimax/h3-max/image-to-video` for any shot that has a still.
 
 `--plan-only` performs no paid video generation. Normal production preserves every attempt and can
-retry failed shots. Credentials are read from the environment and are not written to the bundle.
+retry failed shots. A retry re-shoots the clip and keeps the still, since the still is the settled
+composition and only the motion failed. Credentials are read from the environment and are not written
+to the bundle.
+
+## Stills, faces, and chained shots
+
+The plan decides these per shot, and the manifest records what each shot actually used.
+
+- `reference_prompt` on a character renders one clean portrait. Every still that includes that
+  character is edited from the portrait, which is what holds one face and one costume together across
+  the film.
+- `still_prompt` on a shot fixes its opening frame as an image before any video credit is spent. The
+  shot is then generated from that still.
+- `chain_to_next` hands the following shot's still to the video model as this shot's mandated last
+  frame, so two clips meet on the same image rather than merely resembling each other. Both shots
+  need a still, and the last shot cannot chain.
+- `face_reference` names the character whose photographed face should be swapped onto this shot's
+  still. Supply the photo at the command line, never in the plan:
+
+```bash
+inktofilm produce screenplay.md --face traveler=~/photos/her.jpg -o productions/my-film
+```
+
+Use it only where the face is large in frame. On a wide shot the face covers too few pixels for the
+swap to survive downscaling, and the result reads as a deformed face rather than a likeness. The
+photo goes to the face-swap model and to nothing else: it is never written into a prompt, never sent
+to the planner or judge, and never copied into the bundle. `--no-stills` skips stills, swaps, and
+chaining entirely and shoots every shot from text alone.
 
 ## Bring your own models
 

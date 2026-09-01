@@ -5,16 +5,21 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Sequence
+from typing import Any, Dict, List, Mapping, Optional, Protocol, Sequence
 
 from vidspec.config import CaseSpec, SemanticAssertion, SemanticSpec
 from vidspec.engine import evaluate_case
 from vidspec.models import STATUS_ORDER, CaseReport, RunReport
 from vidspec.production import ProductionError, ProductionPlan, ProductionPlanner, ShotSpec
-from vidspec.providers import FalMiniMaxGenerator, ProviderError
+from vidspec.providers import (
+    FalFaceSwapper,
+    FalImageGenerator,
+    FalMiniMaxGenerator,
+    ProviderError,
+)
 from vidspec.report import write_html, write_json
 from vidspec.semantic import SemanticEvaluator
 
@@ -29,6 +34,20 @@ class VideoGenerator(Protocol):
     ) -> Path: ...
 
 
+class ImageGenerator(Protocol):
+    def generate(
+        self,
+        prompt: str,
+        destination: Path,
+        aspect_ratio: str = ...,
+        references: Sequence[Path] = ...,
+    ) -> Path: ...
+
+
+class FaceSwapper(Protocol):
+    def swap(self, face_image: Path, base_image: Path, destination: Path) -> Path: ...
+
+
 class VideoEditor(Protocol):
     def concat(self, clips: Sequence[Path], destination: Path) -> Path: ...
 
@@ -40,6 +59,7 @@ class ProductionResult:
     final_video: Optional[Path]
     report: Optional[RunReport]
     manifest: Path
+    stills: Dict[str, Path] = field(default_factory=dict)
 
 
 class FFmpegEditor:
@@ -159,11 +179,91 @@ class ProductionOrchestrator:
         generator: Optional[VideoGenerator] = None,
         evaluator: Optional[SemanticEvaluator] = None,
         editor: Optional[VideoEditor] = None,
+        image_generator: Optional[ImageGenerator] = None,
+        face_swapper: Optional[FaceSwapper] = None,
+        faces: Optional[Mapping[str, Path]] = None,
     ):
         self.planner = planner
         self.generator = generator
         self.evaluator = evaluator
         self.editor = editor or FFmpegEditor()
+        self.image_generator = image_generator
+        self.face_swapper = face_swapper
+        self.faces = dict(faces or {})
+
+    def _reference_stills(self, plan: ProductionPlan, output_dir: Path) -> Dict[str, Path]:
+        """Render one clean portrait per character, so every later still edits from one face."""
+        if self.image_generator is None:
+            return {}
+        references: Dict[str, Path] = {}
+        for character in plan.characters:
+            if not character.reference_prompt:
+                continue
+            portrait = output_dir / "references" / f"{character.character_id}.jpg"
+            self.image_generator.generate(character.reference_prompt, portrait, "1:1")
+            face = self.faces.get(character.character_id)
+            if face is not None and self.face_swapper is not None:
+                swapped = portrait.with_name(f"{character.character_id}-face.jpg")
+                portrait = self.face_swapper.swap(face, portrait, swapped)
+            references[character.character_id] = portrait
+        return references
+
+    def _shot_stills(
+        self,
+        plan: ProductionPlan,
+        output_dir: Path,
+        references: Mapping[str, Path],
+    ) -> Dict[str, Path]:
+        """Lock each shot's opening frame before spending a video credit on it."""
+        if self.image_generator is None:
+            return {}
+        stills: Dict[str, Path] = {}
+        for shot in plan.shots:
+            if not shot.still_prompt:
+                continue
+            sources = [references[name] for name in shot.characters if name in references]
+            still = output_dir / "stills" / f"{shot.shot_id}.jpg"
+            self.image_generator.generate(
+                shot.still_prompt,
+                still,
+                plan.aspect_ratio,
+                sources,
+            )
+            face = self.faces.get(shot.face_reference) if shot.face_reference else None
+            if face is not None and self.face_swapper is not None:
+                swapped = still.with_name(f"{shot.shot_id}-face.jpg")
+                still = self.face_swapper.swap(face, still, swapped)
+            stills[shot.shot_id] = still
+        return stills
+
+    def _shoot(
+        self,
+        plan: ProductionPlan,
+        position: int,
+        prompt: str,
+        destination: Path,
+        stills: Mapping[str, Path],
+    ) -> Path:
+        """Shoot from the shot's still when there is one, and land on the next still when chained."""
+        shot = plan.shots[position]
+        start = stills.get(shot.shot_id)
+        if start is None or not hasattr(self.generator, "generate_from_image"):
+            return self.generator.generate(
+                prompt,
+                shot.duration_seconds,
+                plan.aspect_ratio,
+                destination,
+            )
+        end: Optional[Path] = None
+        if shot.chain_to_next and position + 1 < len(plan.shots):
+            end = stills.get(plan.shots[position + 1].shot_id)
+        return self.generator.generate_from_image(
+            prompt,
+            shot.duration_seconds,
+            start,
+            destination,
+            end_image=end,
+        )
 
     def produce(
         self,
@@ -203,10 +303,29 @@ class ProductionOrchestrator:
             raise ProviderError("A video generator is required unless --plan-only is used")
         if self.evaluator is None:
             raise ProviderError("A semantic evaluator is required unless --plan-only is used")
+        unknown_faces = sorted(
+            set(self.faces) - {character.character_id for character in plan.characters}
+        )
+        if unknown_faces:
+            raise ProductionError(
+                f"No character in this plan is named {', '.join(unknown_faces)}"
+            )
+
+        references = self._reference_stills(plan, output_dir)
+        stills = self._shot_stills(plan, output_dir, references)
+        if references:
+            manifest["references"] = {
+                name: path.relative_to(output_dir).as_posix()
+                for name, path in references.items()
+            }
+        if stills:
+            manifest["stills"] = {
+                name: path.relative_to(output_dir).as_posix() for name, path in stills.items()
+            }
 
         cases: List[CaseReport] = []
         selected_clips: List[Path] = []
-        for shot in plan.shots:
+        for position, shot in enumerate(plan.shots):
             attempts: List[Dict[str, Any]] = []
             feedback = ""
             selected_path: Optional[Path] = None
@@ -214,12 +333,7 @@ class ProductionOrchestrator:
             for attempt in range(1, max_retries + 2):
                 prompt = _generation_prompt(plan, shot, feedback)
                 clip_path = output_dir / "shots" / f"{shot.shot_id}-attempt-{attempt}.mp4"
-                self.generator.generate(
-                    prompt,
-                    shot.duration_seconds,
-                    plan.aspect_ratio,
-                    clip_path,
-                )
+                self._shoot(plan, position, prompt, clip_path, stills)
                 relative = clip_path.relative_to(output_dir).as_posix()
                 case = _case_spec(shot, relative, prompt)
                 report = evaluate_case(
@@ -243,14 +357,17 @@ class ProductionOrchestrator:
             assert selected_path is not None and selected_report is not None
             selected_clips.append(selected_path)
             cases.append(selected_report)
-            manifest["shots"].append(
-                {
-                    "id": shot.shot_id,
-                    "selected_video": selected_path.relative_to(output_dir).as_posix(),
-                    "status": selected_report.status,
-                    "attempts": attempts,
-                }
-            )
+            entry: Dict[str, Any] = {
+                "id": shot.shot_id,
+                "selected_video": selected_path.relative_to(output_dir).as_posix(),
+                "status": selected_report.status,
+                "attempts": attempts,
+            }
+            still = stills.get(shot.shot_id)
+            if still is not None:
+                entry["still"] = still.relative_to(output_dir).as_posix()
+                entry["chained_to_next"] = shot.chain_to_next
+            manifest["shots"].append(entry)
 
         report = RunReport(
             suite_name=f"{plan.title} production",
@@ -267,11 +384,13 @@ class ProductionOrchestrator:
             json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-        return ProductionResult(plan, output_dir, final_video, report, manifest_path)
+        return ProductionResult(plan, output_dir, final_video, report, manifest_path, stills)
 
 
 __all__ = [
     "FFmpegEditor",
+    "FalFaceSwapper",
+    "FalImageGenerator",
     "FalMiniMaxGenerator",
     "ProductionOrchestrator",
     "ProductionResult",

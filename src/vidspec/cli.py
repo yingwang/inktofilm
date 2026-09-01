@@ -9,7 +9,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from vidspec import __version__
 from vidspec.compare import ComparisonError, compare_report_files, output_paths, write_comparison
@@ -18,10 +18,17 @@ from vidspec.engine import run_suite
 from vidspec.media import MediaToolError, probe_video
 from vidspec.models import STATUS_ORDER
 from vidspec.produce import ProductionOrchestrator
-from vidspec.production import CodexProductionPlanner, CommandProductionPlanner, ProductionError
+from vidspec.production import (
+    CodexProductionPlanner,
+    CommandProductionPlanner,
+    ProductionError,
+    safe_id,
+)
 from vidspec.providers import (
     CodexCLIProvider,
     CommandVideoGenerator,
+    FalFaceSwapper,
+    FalImageGenerator,
     FalMiniMaxGenerator,
     ProviderError,
 )
@@ -158,9 +165,52 @@ def _parser() -> argparse.ArgumentParser:
         default="768P",
         help="native MiniMax generation resolution",
     )
+    produce.add_argument(
+        "--no-stills",
+        action="store_true",
+        help="skip still generation and shoot every shot from text alone",
+    )
+    produce.add_argument(
+        "--image-model",
+        default="fal-ai/nano-banana",
+        help="fal model endpoint for stills generated from a prompt alone",
+    )
+    produce.add_argument(
+        "--image-edit-model",
+        default="fal-ai/nano-banana/edit",
+        help="fal model endpoint for stills edited from reference stills",
+    )
+    produce.add_argument(
+        "--face-swap-model",
+        default="fal-ai/face-swap",
+        help="fal model endpoint used by --face",
+    )
+    produce.add_argument(
+        "--face",
+        action="append",
+        metavar="CHARACTER_ID=PATH",
+        help=(
+            "put a real photographed face on one character's close-up stills. "
+            "The photo is uploaded to fal and never written into a model prompt. "
+            "Repeat for more characters."
+        ),
+    )
 
     commands.add_parser("doctor", help="check local tools and default provider credentials")
     return parser
+
+
+def _face_map(values: Optional[List[str]]) -> Dict[str, Path]:
+    faces: Dict[str, Path] = {}
+    for value in values or []:
+        character_id, separator, raw_path = value.partition("=")
+        if not separator or not character_id.strip() or not raw_path.strip():
+            raise ProductionError(f"--face expects CHARACTER_ID=PATH, got '{value}'")
+        path = Path(raw_path.strip()).expanduser().resolve()
+        if not path.is_file():
+            raise ProductionError(f"--face photo does not exist: {path}")
+        faces[safe_id(character_id.strip())] = path
+    return faces
 
 
 def _run(args: argparse.Namespace) -> int:
@@ -242,8 +292,11 @@ def _run(args: argparse.Namespace) -> int:
             if args.planner_command
             else CodexProductionPlanner(codex)
         )
+        faces = _face_map(args.face)
         generator = None
         evaluator = None
+        image_generator = None
+        face_swapper = None
         if not args.plan_only:
             generator = (
                 CommandVideoGenerator.from_string(
@@ -264,10 +317,21 @@ def _run(args: argparse.Namespace) -> int:
                 if args.judge_command
                 else CodexSemanticEvaluator(codex)
             )
+            if not args.no_stills:
+                image_generator = FalImageGenerator(
+                    model=args.image_model,
+                    edit_model=args.image_edit_model,
+                )
+                face_swapper = FalFaceSwapper(model=args.face_swap_model)
+        if faces and args.no_stills:
+            raise ProductionError("--face needs stills, so it cannot be used with --no-stills")
         result = ProductionOrchestrator(
             planner=planner,
             generator=generator,
             evaluator=evaluator,
+            image_generator=image_generator,
+            face_swapper=face_swapper,
+            faces=faces,
         ).produce(
             script,
             Path(args.output),

@@ -118,6 +118,121 @@ def _download(url: str) -> bytes:
         raise ProviderError(f"Could not download generated video: {exc}") from exc
 
 
+def _fal_client(client: Any) -> Any:
+    if client is not None:
+        return client
+    try:
+        return importlib.import_module("fal_client")
+    except ImportError as exc:
+        raise ProviderError(
+            "fal-client is not installed; install InkToFilm with 'pip install inktofilm[fal]'"
+        ) from exc
+
+
+def _first_image_url(result: Any) -> str:
+    """Read the image URL out of a fal result, which may hold one image or a list."""
+    image = result.get("images") or result.get("image") if isinstance(result, dict) else None
+    if isinstance(image, list):
+        image = image[0] if image else None
+    url = image.get("url") if isinstance(image, dict) else image
+    if not isinstance(url, str) or not url:
+        raise ProviderError("fal image result did not contain an image url")
+    return url
+
+
+def _write_image(url: str, destination: Path, downloader: Download) -> Path:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(downloader(url))
+    if not destination.is_file() or destination.stat().st_size == 0:
+        raise ProviderError("fal returned an empty image")
+    return destination
+
+
+class FalImageGenerator:
+    """Generate a composition-locked still through the user's fal account.
+
+    A still fixes costume, framing, and lighting before any video credit is spent, and the
+    same still can then condition the shot that follows it.
+    """
+
+    def __init__(
+        self,
+        model: str = "fal-ai/nano-banana",
+        edit_model: str = "fal-ai/nano-banana/edit",
+        client: Any = None,
+        downloader: Download = _download,
+    ):
+        self.model = model
+        self.edit_model = edit_model
+        self._client = client
+        self.downloader = downloader
+
+    def generate(
+        self,
+        prompt: str,
+        destination: Path,
+        aspect_ratio: str = "16:9",
+        references: Sequence[Path] = (),
+    ) -> Path:
+        """Render one still, editing from reference stills when any are supplied."""
+        if not os.environ.get("FAL_KEY"):
+            raise ProviderError("FAL_KEY is required for the fal image provider")
+        for reference in references:
+            if not reference.is_file():
+                raise ProviderError(f"Reference still does not exist: {reference}")
+        client = _fal_client(self._client)
+        arguments: Dict[str, Any] = {
+            "prompt": prompt,
+            "num_images": 1,
+            "aspect_ratio": aspect_ratio,
+        }
+        model = self.model
+        if references:
+            model = self.edit_model
+            arguments["image_urls"] = [client.upload_file(item) for item in references]
+        try:
+            result = client.subscribe(model, arguments=arguments)
+        except Exception as exc:
+            raise ProviderError(f"fal still generation failed: {exc}") from exc
+        return _write_image(_first_image_url(result), destination, self.downloader)
+
+
+class FalFaceSwapper:
+    """Put a supplied face onto a generated still through the user's fal account.
+
+    Worth doing only where the face is large in frame. On a wide shot the face covers too
+    few pixels for the swap to survive, and the attempt usually reads as a deformed face.
+    """
+
+    def __init__(
+        self,
+        model: str = "fal-ai/face-swap",
+        client: Any = None,
+        downloader: Download = _download,
+    ):
+        self.model = model
+        self._client = client
+        self.downloader = downloader
+
+    def swap(self, face_image: Path, base_image: Path, destination: Path) -> Path:
+        if not os.environ.get("FAL_KEY"):
+            raise ProviderError("FAL_KEY is required for the fal face-swap provider")
+        if not face_image.is_file():
+            raise ProviderError(f"Face image does not exist: {face_image}")
+        if not base_image.is_file():
+            raise ProviderError(f"Base still does not exist: {base_image}")
+        client = _fal_client(self._client)
+        arguments = {
+            "swap_image_url": client.upload_file(face_image),
+            "base_image_url": client.upload_file(base_image),
+        }
+        try:
+            result = client.subscribe(self.model, arguments=arguments)
+        except Exception as exc:
+            raise ProviderError(f"fal face swap failed: {exc}") from exc
+        return _write_image(_first_image_url(result), destination, self.downloader)
+
+
 class FalMiniMaxGenerator:
     """Generate a shot with MiniMax H3 through the user's fal account."""
 
@@ -136,14 +251,7 @@ class FalMiniMaxGenerator:
         self.downloader = downloader
 
     def _load_client(self) -> Any:
-        if self._client is not None:
-            return self._client
-        try:
-            return importlib.import_module("fal_client")
-        except ImportError as exc:
-            raise ProviderError(
-                "fal-client is not installed; install InkToFilm with 'pip install inktofilm[fal]'"
-            ) from exc
+        return _fal_client(self._client)
 
     def generate(
         self,
@@ -243,13 +351,42 @@ class CommandVideoGenerator:
         aspect_ratio: str,
         destination: Path,
     ) -> Path:
+        return self._run(
+            {
+                "prompt": prompt,
+                "duration_seconds": duration_seconds,
+                "aspect_ratio": aspect_ratio,
+            },
+            destination,
+        )
+
+    def generate_from_image(
+        self,
+        prompt: str,
+        duration_seconds: int,
+        start_image: Path,
+        destination: Path,
+        end_image: Optional[Path] = None,
+    ) -> Path:
+        if not start_image.is_file():
+            raise ProviderError(f"Start image does not exist: {start_image}")
+        if end_image is not None and not end_image.is_file():
+            raise ProviderError(f"End image does not exist: {end_image}")
+        payload: Dict[str, Any] = {
+            "prompt": prompt,
+            "duration_seconds": duration_seconds,
+            "start_image": str(start_image.resolve()),
+        }
+        if end_image is not None:
+            payload["end_image"] = str(end_image.resolve())
+        return self._run(payload, destination)
+
+    def _run(self, payload: Dict[str, Any], destination: Path) -> Path:
         destination = destination.resolve()
         destination.parent.mkdir(parents=True, exist_ok=True)
         request = {
             "schema_version": "1.0",
-            "prompt": prompt,
-            "duration_seconds": duration_seconds,
-            "aspect_ratio": aspect_ratio,
+            **payload,
             "destination": str(destination),
         }
         try:
