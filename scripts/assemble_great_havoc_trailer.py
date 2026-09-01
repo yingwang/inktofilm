@@ -33,6 +33,18 @@ DIALOGUE = (
 SHOT_STARTS_MS = (0, 4784, 9568, 14352, 19136, 24136)
 DIALOGUE_STARTS_MS = (1300, 6300, 16800)
 
+# Loudness and echo treatment per spoken line, in the order of DIALOGUE.
+DIALOGUE_TREATMENTS = (
+    ("loudnorm=I=-19:TP=-3:LRA=6", "aecho=0.8:0.45:80|160:0.20|0.10"),
+    ("loudnorm=I=-18:TP=-3:LRA=6", "aecho=0.8:0.55:48:0.12"),
+    ("loudnorm=I=-18:TP=-3:LRA=7", "aecho=0.8:0.55:52:0.13"),
+)
+
+# A spoken line peaks far above this in its own window; ambience is mixed separately and
+# never reaches the dialogue submix, so anything quieter means the line was lost.
+DIALOGUE_FLOOR_DB = -40.0
+DIALOGUE_WINDOW_SECONDS = 3.0
+
 
 def input_args(paths: tuple[Path, ...]) -> list[str]:
     args: list[str] = []
@@ -98,27 +110,82 @@ def audio_filters() -> list[str]:
         )
     )
 
-    # Dialogue intentionally straddles cuts. Its continuation across the visual boundary creates an
-    # audio bridge, so the scene change reads as one dramatic thought rather than a pasted clip.
-    filters.extend(
-        (
-            "[6:a]aresample=48000,aformat=channel_layouts=stereo,"
-            "loudnorm=I=-19:TP=-3:LRA=6,aecho=0.8:0.45:80|160:0.20|0.10,"
-            f"adelay={DIALOGUE_STARTS_MS[0]}|{DIALOGUE_STARTS_MS[0]}[d0]",
-            "[7:a]aresample=48000,aformat=channel_layouts=stereo,"
-            "loudnorm=I=-18:TP=-3:LRA=6,aecho=0.8:0.55:48:0.12,"
-            f"adelay={DIALOGUE_STARTS_MS[1]}|{DIALOGUE_STARTS_MS[1]}[d1]",
-            "[8:a]aresample=48000,aformat=channel_layouts=stereo,"
-            "loudnorm=I=-18:TP=-3:LRA=7,aecho=0.8:0.55:52:0.13,"
-            f"adelay={DIALOGUE_STARTS_MS[2]}|{DIALOGUE_STARTS_MS[2]}[d2]",
-            "[d0][d1][d2]amix=inputs=3:duration=longest:normalize=0,"
-            "apad=whole_dur=30,atrim=duration=30,asetpts=PTS-STARTPTS[dialogue]",
-            "[base][dialogue]amix=inputs=2:duration=longest:dropout_transition=0:normalize=0,"
-            "apad=whole_dur=30,loudnorm=I=-16:LRA=9:TP=-1.5,atrim=duration=30,"
-            "asetpts=PTS-STARTPTS[aout]",
-        )
+    filters.extend(dialogue_filters(len(VIDEOS)))
+    filters.append(
+        "[base][dialogue]amix=inputs=2:duration=longest:dropout_transition=0:normalize=0,"
+        "apad=whole_dur=30,loudnorm=I=-16:LRA=9:TP=-1.5,"
+        "asetpts=PTS-STARTPTS,atrim=duration=30[aout]"
     )
     return filters
+
+
+def dialogue_filters(first_input: int) -> list[str]:
+    """Build the dialogue submix from three inputs starting at `first_input`.
+
+    Dialogue intentionally straddles cuts. Its continuation across the visual boundary creates an
+    audio bridge, so the scene change reads as one dramatic thought rather than a pasted clip.
+    """
+    filters = [
+        f"[{first_input + index}:a]aresample=48000,aformat=channel_layouts=stereo,"
+        f"{normalize},{echo},adelay={start_ms}|{start_ms}[d{index}]"
+        for index, ((normalize, echo), start_ms) in enumerate(
+            zip(DIALOGUE_TREATMENTS, DIALOGUE_STARTS_MS)
+        )
+    ]
+    # adelay leaves the mixed stream with a non-zero start timestamp, and atrim measures its
+    # window against those timestamps. Rebase to zero before trimming, or the trim discards
+    # every spoken line and leaves only the silent lead-in.
+    filters.append(
+        "[d0][d1][d2]amix=inputs=3:duration=longest:normalize=0,"
+        "apad=whole_dur=30,asetpts=PTS-STARTPTS,atrim=duration=30[dialogue]"
+    )
+    return filters
+
+
+def max_volume_db(path: Path, start_seconds: float, duration_seconds: float) -> float:
+    completed = subprocess.run(
+        (
+            "ffmpeg", "-hide_banner", "-nostats",
+            "-ss", f"{start_seconds:.3f}", "-t", f"{duration_seconds:.3f}",
+            "-i", str(path), "-af", "volumedetect", "-f", "null", "-",
+        ),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    for line in completed.stderr.splitlines():
+        if "max_volume:" in line:
+            return float(line.split("max_volume:")[1].split("dB")[0])
+    # volumedetect prints nothing when the requested window holds no samples at all, which
+    # is what a track truncated ahead of the window looks like from here.
+    return float("-inf")
+
+
+def verify_dialogue_reaches_the_mix() -> None:
+    """Confirm every spoken line is audible in the submix that feeds the final mix.
+
+    A delayed submix carries non-zero timestamps, so a trim measured against them can drop
+    every line and still hand back a track of the full length. The finished container looks
+    correct in that case and only listening reveals the loss, so check the lines themselves.
+    """
+    submix = OUTPUT.with_name(f"{OUTPUT.stem}.dialogue-submix.wav")
+    command = [
+        "ffmpeg", "-hide_banner", "-loglevel", "warning", "-y",
+        *input_args(DIALOGUE),
+        "-filter_complex", ";".join(dialogue_filters(0)),
+        "-map", "[dialogue]", str(submix),
+    ]
+    subprocess.run(command, check=True)
+    try:
+        for line, start_ms in zip(DIALOGUE, DIALOGUE_STARTS_MS):
+            peak = max_volume_db(submix, start_ms / 1000, DIALOGUE_WINDOW_SECONDS)
+            if peak < DIALOGUE_FLOOR_DB:
+                raise SystemExit(
+                    f"dialogue line {line.name} is inaudible at {start_ms / 1000:.1f}s "
+                    f"({peak:.1f} dB peak); the submix lost it before the final mix"
+                )
+    finally:
+        submix.unlink(missing_ok=True)
 
 
 def probe(path: Path) -> dict:
@@ -141,6 +208,8 @@ def probe(path: Path) -> dict:
 
 
 def main() -> None:
+    verify_dialogue_reaches_the_mix()
+
     all_inputs = VIDEOS + DIALOGUE
     temporary = OUTPUT.with_name(f"{OUTPUT.stem}.dialogue-cut.mp4")
     filters = ";".join(video_filters() + audio_filters())

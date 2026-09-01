@@ -72,6 +72,10 @@ Max as the default video generator, while respecting any model the user explicit
 - Verify the finished container rather than assuming a successful encode is complete. Confirm the
   audio and video streams both span the intended duration, decode the full file, and scan the final
   mix for unintended long silence; distinguish deliberate quiet from a truncated audio stream.
+- Verify the elements you mixed in, not only the container around them. A delayed submix that is
+  then trimmed against its own timestamps can arrive at full length and completely silent, which
+  every duration and stream check still passes. Confirm each spoken line is audible at the moment it
+  belongs, and treat any element that survives only as a filename as missing from the film.
 
 For the current H3 workflow, use InkToFilm's provider and production APIs rather than recreating fal
 requests ad hoc. Keep generated prompts, reports, and media inside the user's chosen project. Treat

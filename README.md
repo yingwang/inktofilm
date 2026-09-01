@@ -75,8 +75,8 @@ You give InkToFilm one sentence or a complete screenplay. It handles the rest:
 The prompt was simple: make a theatrical, live-action *Journey to the West* trailer with blockbuster
 scale. InkToFilm wrote a five-shot plan, generated the footage with MiniMax H3 Max, repaired the weak
 climax, continued one directly connected action from a selected stable frame, connected the other
-shots with lightning and sound bridges, added a separately mixed three-line Mandarin dialogue arc,
-and rendered the title card locally.
+shots with lightning and sound bridges, mixed a three-line Mandarin dialogue arc that carries across
+two cuts, and typeset the title card locally so the film's only text is exact and reproducible.
 
 <p align="center">
   <a href="examples/great-havoc-in-heaven/great-havoc-in-heaven-trailer.mp4">
@@ -90,7 +90,9 @@ and rendered the title card locally.
   lines cost less than **$0.10**.
 - Public materials: [screenplay](examples/great-havoc-in-heaven/script.md),
   [shot prompts](examples/great-havoc-in-heaven/prompts.md), and
-  [evidence-backed review](examples/great-havoc-in-heaven/report/index.html).
+  [evidence-backed review](examples/great-havoc-in-heaven/report/index.html). The edit, the spoken
+  lines, and the title card are reproduced by the scripts in
+  [`scripts/`](scripts/).
 
 ## Demo 2 · It fixes weak takes instead of hiding them
 
