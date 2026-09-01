@@ -14,11 +14,13 @@ from vidspec.production import (
     parse_plan,
 )
 from vidspec.providers import (
+    ClaudeCodeProvider,
     CodexCLIProvider,
     CommandVideoGenerator,
     FalFaceSwapper,
     FalImageGenerator,
     FalMiniMaxGenerator,
+    ProviderError,
 )
 
 
@@ -140,6 +142,82 @@ def test_codex_provider_uses_ephemeral_read_only_structured_output(tmp_path, mon
     assert command[command.index("--model") + 1] == "test-model"
     assert str(frame.resolve()) in command
     assert captured["kwargs"]["input"] == "judge this"
+
+
+def _claude_envelope(**overrides):
+    envelope = {"is_error": False, "permission_denials": [], "result": "{}"}
+    envelope.update(overrides)
+    return envelope
+
+
+def test_claude_provider_reads_frames_in_a_restricted_session(tmp_path, monkeypatch):
+    captured = {}
+
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        captured["kwargs"] = kwargs
+        return subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=json.dumps(_claude_envelope(structured_output={"answer": "ok"})),
+            stderr="",
+        )
+
+    monkeypatch.setattr(ClaudeCodeProvider, "available", staticmethod(lambda: True))
+    frame = tmp_path / "frames" / "frame.jpg"
+    frame.parent.mkdir()
+    frame.write_bytes(b"jpeg")
+    provider = ClaudeCodeProvider(model="test-model", runner=fake_run)
+    result = provider.run_json(
+        "judge this",
+        {"type": "object"},
+        images=[frame],
+        working_dir=tmp_path,
+    )
+    command = captured["command"]
+    assert result == {"answer": "ok"}
+    # The judge gets a read-only session that ignores the user's own settings.
+    assert "--restricted" in command
+    assert "--strict-mcp-config" in command
+    assert command[command.index("--allowedTools") + 1] == "Read"
+    assert command[command.index("--output-format") + 1] == "json"
+    assert json.loads(command[command.index("--json-schema") + 1]) == {"type": "object"}
+    assert command[command.index("--model") + 1] == "test-model"
+    # Claude Code has no image flag, so frames travel as paths plus an opened directory.
+    assert command[command.index("--add-dir") + 1] == str(frame.parent.resolve())
+    assert str(frame.resolve()) in captured["kwargs"]["input"]
+
+
+def test_claude_provider_falls_back_to_the_result_text(monkeypatch):
+    def fake_run(command, **kwargs):
+        return subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=json.dumps(_claude_envelope(result='{"answer": "parsed"}')),
+            stderr="",
+        )
+
+    monkeypatch.setattr(ClaudeCodeProvider, "available", staticmethod(lambda: True))
+    provider = ClaudeCodeProvider(runner=fake_run)
+    assert provider.run_json("judge this", {"type": "object"}) == {"answer": "parsed"}
+
+
+def test_claude_provider_reports_a_failed_or_blocked_session(monkeypatch):
+    monkeypatch.setattr(ClaudeCodeProvider, "available", staticmethod(lambda: True))
+
+    def failed(command, **kwargs):
+        stdout = json.dumps(_claude_envelope(is_error=True, result="Not logged in"))
+        return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+    with pytest.raises(ProviderError, match="Not logged in"):
+        ClaudeCodeProvider(runner=failed).run_json("judge this", {"type": "object"})
+
+    def denied(command, **kwargs):
+        stdout = json.dumps(_claude_envelope(permission_denials=[{"tool": "Read"}]))
+        return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+    with pytest.raises(ProviderError, match="could not read the evidence"):
+        ClaudeCodeProvider(runner=denied).run_json("judge this", {"type": "object"})
 
 
 def test_fal_generator_uses_environment_key_without_persisting_it(tmp_path, monkeypatch):

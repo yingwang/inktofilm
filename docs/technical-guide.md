@@ -30,10 +30,15 @@ inktofilm produce screenplay.md -o productions/my-film
 The production bundle contains the source screenplay, structured plan, character portraits under
 `references/`, shot stills under `stills/`, generated attempts, evidence frames, quality report,
 manifest, and `final.mp4`. Planning and semantic review default to the locally authenticated Codex
-CLI. In Claude Code, the running agent normally plans and judges directly instead: it writes the plan
-and suite itself, inspects the sampled evidence frames, and replays its reviewed verdicts through
-`--semantic-results`. Video generation defaults to `minimax/h3-max/text-to-video` through the user's
-fal account, and to `minimax/h3-max/image-to-video` for any shot that has a still.
+CLI. Video generation defaults to `minimax/h3-max/text-to-video` through the user's fal account, and
+to `minimax/h3-max/image-to-video` for any shot that has a still.
+
+`--judge-claude` judges each shot with the locally authenticated Claude Code CLI instead of Codex, so
+the whole run needs only Claude Code and a fal key. In Claude Code the running agent can also judge
+in the loop rather than as a subprocess: it writes the plan and suite itself, inspects the sampled
+evidence frames, and replays its reviewed verdicts through `--semantic-results`. That costs one
+model rather than two and lets the agent notice what no assertion happened to ask about, which is
+worth keeping in mind, because either judge only scores the assertions the plan actually wrote.
 
 `--plan-only` performs no paid video generation. Normal production preserves every attempt and can
 retry failed shots. A retry re-shoots the clip and keeps the still, since the still is the settled
@@ -87,6 +92,7 @@ The adapters exchange documented JSON through standard input and output. See
 inktofilm init
 inktofilm run inktofilm.json --output reports/latest
 inktofilm run inktofilm.json --semantic-codex --output reports/semantic
+inktofilm run inktofilm.json --semantic-claude --output reports/semantic
 inktofilm run inktofilm.json --semantic-results reviewed.json --output reports/semantic
 ```
 
@@ -95,7 +101,8 @@ freeze checks. Semantic evaluation is opt-in and attaches sampled frames, scores
 provider provenance to each assertion. Suite paths are resolved relative to the suite and may not
 escape its directory.
 
-`--semantic-codex` judges the sampled frames with the locally authenticated Codex CLI.
+`--semantic-codex` and `--semantic-claude` judge the sampled frames with the locally
+authenticated Codex CLI or Claude Code CLI respectively.
 `--semantic-results` replays reviewed verdicts from a JSON file, which is how an agent with vision,
 such as Claude Code, acts as the judge itself: it samples the same evenly spaced frames, inspects
 them, writes the per-case results with its own model named in the provenance, and runs the suite

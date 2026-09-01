@@ -110,6 +110,111 @@ class CodexCLIProvider:
             return raw
 
 
+class ClaudeCodeProvider:
+    """Use the locally authenticated Claude Code CLI as a structured-output model.
+
+    The mirror of CodexCLIProvider. Claude Code has no flag for attaching images, so frames are
+    named by absolute path in the prompt and read with the Read tool, which is why the directories
+    holding them have to be opened with --add-dir.
+    """
+
+    def __init__(
+        self,
+        model: Optional[str] = None,
+        timeout_seconds: float = 600.0,
+        runner: RunCommand = subprocess.run,
+    ):
+        self.model = model
+        self.timeout_seconds = timeout_seconds
+        self.runner = runner
+
+    @staticmethod
+    def available() -> bool:
+        return shutil.which("claude") is not None
+
+    def run_json(
+        self,
+        prompt: str,
+        schema: Mapping[str, Any],
+        images: Sequence[Path] = (),
+        working_dir: Optional[Path] = None,
+    ) -> Dict[str, Any]:
+        if not self.available():
+            raise ProviderError("Claude Code CLI is not installed or not available on PATH")
+        resolved = [path.resolve() for path in images]
+        directories = []
+        for path in resolved:
+            parent = str(path.parent)
+            if parent not in directories:
+                directories.append(parent)
+        if resolved:
+            listing = "\n".join(f"Frame {index}: {path}" for index, path in enumerate(resolved, 1))
+            prompt = (
+                f"{prompt}\n\nRead every one of these images before answering. "
+                f"They are numbered in order.\n{listing}"
+            )
+        command = [
+            "claude",
+            "--print",
+            # The judge reads frames and nothing else: no shell, no network, and no user,
+            # project, or local settings that could color a verdict.
+            "--restricted",
+            "--strict-mcp-config",
+            "--allowedTools",
+            "Read",
+            "--permission-mode",
+            "dontAsk",
+            "--output-format",
+            "json",
+            "--json-schema",
+            json.dumps(schema, ensure_ascii=False),
+        ]
+        for directory in directories:
+            command.extend(["--add-dir", directory])
+        if self.model:
+            command.extend(["--model", self.model])
+        base_dir = working_dir.resolve() if working_dir else None
+        if base_dir is not None:
+            base_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            completed = self.runner(
+                command,
+                input=prompt,
+                capture_output=True,
+                text=True,
+                timeout=self.timeout_seconds,
+                cwd=str(base_dir) if base_dir else None,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise ProviderError(f"Claude Code CLI could not run: {exc}") from exc
+        if completed.returncode:
+            detail = completed.stderr.strip() or f"exit code {completed.returncode}"
+            raise ProviderError(f"Claude Code CLI failed: {detail}")
+        try:
+            envelope = json.loads(completed.stdout)
+        except json.JSONDecodeError as exc:
+            raise ProviderError("Claude Code CLI did not return valid JSON") from exc
+        if not isinstance(envelope, dict):
+            raise ProviderError("Claude Code CLI result must be a JSON object")
+        if envelope.get("is_error"):
+            detail = envelope.get("result") or "the session reported an error"
+            raise ProviderError(f"Claude Code CLI failed: {detail}")
+        denials = envelope.get("permission_denials")
+        if denials:
+            raise ProviderError(
+                f"Claude Code CLI could not read the evidence it was given: {denials}"
+            )
+        raw = envelope.get("structured_output")
+        if raw is None:
+            try:
+                raw = json.loads(envelope.get("result", ""))
+            except json.JSONDecodeError as exc:
+                raise ProviderError("Claude Code CLI did not return structured output") from exc
+        if not isinstance(raw, dict):
+            raise ProviderError("Claude Code CLI structured output must be a JSON object")
+        return raw
+
+
 def _download(url: str) -> bytes:
     try:
         with urllib.request.urlopen(url, timeout=180) as response:

@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Mapping, Protocol, Sequence
 
 from vidspec.config import CaseSpec
 from vidspec.models import Evidence, Finding, VideoProbe
-from vidspec.providers import CodexCLIProvider, ProviderError
+from vidspec.providers import ClaudeCodeProvider, CodexCLIProvider, ProviderError
 
 
 class SemanticEvaluationError(RuntimeError):
@@ -314,10 +314,14 @@ class JsonSemanticEvaluator:
         return _parse_result(spec, raw, frames)
 
 
-class CodexSemanticEvaluator:
-    """Judge sampled frames with an authenticated Codex CLI session."""
+class CLISemanticEvaluator:
+    """Judge sampled frames with a locally authenticated agent CLI.
 
-    def __init__(self, provider: CodexCLIProvider):
+    The CLI supplies the vision model and its own credentials; InkToFilm supplies the frames, the
+    assertions, and the output schema, and validates whatever comes back.
+    """
+
+    def __init__(self, provider: Any):
         self.provider = provider
 
     def evaluate(
@@ -337,7 +341,7 @@ class CodexSemanticEvaluator:
         )
         request = _request(spec, probe, frames)
         prompt = """Act as a strict, evidence-bound video QA judge.
-Inspect every attached frame and evaluate every requested assertion exactly once.
+Inspect every supplied frame and evaluate every requested assertion exactly once.
 Use only visible evidence, cite the supplied 1-based frame indexes, and lower the score when
 the evidence is ambiguous or temporal behavior cannot be established from sampled frames.
 Never infer identity, dialogue accuracy, or off-screen events without visible support.
@@ -355,6 +359,20 @@ INKTOFILM REQUEST
         except ProviderError as exc:
             raise SemanticEvaluationError(str(exc)) from exc
         return _parse_result(spec, raw, frames)
+
+
+class CodexSemanticEvaluator(CLISemanticEvaluator):
+    """Judge sampled frames with an authenticated Codex CLI session."""
+
+    def __init__(self, provider: CodexCLIProvider):
+        super().__init__(provider)
+
+
+class ClaudeCodeSemanticEvaluator(CLISemanticEvaluator):
+    """Judge sampled frames with an authenticated Claude Code CLI session."""
+
+    def __init__(self, provider: ClaudeCodeProvider):
+        super().__init__(provider)
 
 
 class CommandSemanticEvaluator:
