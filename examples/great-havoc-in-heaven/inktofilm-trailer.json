@@ -1,0 +1,120 @@
+{
+  "name": "great-havoc-in-heaven-theatrical-trailer",
+  "cases": [
+    {
+      "id": "celestial-armada-establishing",
+      "video": "generated/shot-01-celestial-armada-768p.mp4",
+      "prompt": "A live-action IMAX-scale aerial shot races through clouds over hundreds of bronze celestial warships and endless heavenly soldiers toward the South Heavenly Gate, where Sun Wukong stands alone.",
+      "expect": {
+        "duration_seconds": {"min": 5.0, "max": 5.5},
+        "resolution": {"min_width": 1200, "min_height": 680},
+        "fps": {"min": 23.9},
+        "codecs": ["h264"],
+        "black_frames": {"max_total_ratio": 0.02},
+        "freezes": {"max_total_ratio": 0.05}
+      },
+      "semantic": {
+        "sample_frames": 5,
+        "assertions": [
+          {"id": "celestial-armada", "description": "A large celestial invasion force with multiple bronze warships, soldiers, and war banners is visible at monumental scale.", "min_score": 0.78},
+          {"id": "south-heavenly-gate", "description": "A colossal traditional Chinese heavenly gate and palace complex dominates the destination of the camera move.", "min_score": 0.80},
+          {"id": "lone-wukong", "description": "One lone armored monkey warrior with a crimson cape and long staff stands on the white-jade stairs facing the army.", "min_score": 0.72},
+          {"id": "scale-and-depth", "description": "The shot has readable foreground, middle ground, and deep background with convincing blockbuster scale rather than undifferentiated particles.", "min_score": 0.78},
+          {"id": "no-unwanted-text", "description": "No subtitle, logo, watermark, or malformed text is visible.", "min_score": 0.95}
+        ]
+      }
+    },
+    {
+      "id": "monkey-king-looks-up",
+      "video": "generated/shot-02-monkey-king-looks-up.mp4",
+      "prompt": "A low-angle hero reveal orbits Sun Wukong on shattered jade as his red cape lashes, his staff throws sparks, and a vast heavenly army aims spears behind him under storm clouds.",
+      "expect": {
+        "duration_seconds": {"min": 5.0, "max": 5.5},
+        "resolution": {"min_width": 1200, "min_height": 680},
+        "fps": {"min": 23.9},
+        "codecs": ["h264"],
+        "black_frames": {"max_total_ratio": 0.02},
+        "freezes": {"max_total_ratio": 0.05}
+      },
+      "semantic": {
+        "sample_frames": 5,
+        "assertions": [
+          {"id": "hero-wukong", "description": "A single realistic monkey warrior in ornate dark-gold armor, a crimson cape, crown, and long black-and-gold staff is the clear hero subject.", "min_score": 0.78},
+          {"id": "defiant-reveal", "description": "The low-angle composition and visible pose read as a controlled, defiant hero reveal rather than a generic standing figure.", "min_score": 0.72},
+          {"id": "surrounding-army", "description": "Dense heavenly soldiers and lowered spears visibly surround or threaten the hero in the middle and background.", "min_score": 0.75},
+          {"id": "storm-and-scale", "description": "Lightning, storm clouds, large silhouettes, and layered depth create a monumental mythic-war scale.", "min_score": 0.75},
+          {"id": "no-unwanted-text", "description": "No subtitle, logo, watermark, or malformed text is visible.", "min_score": 0.95}
+        ]
+      }
+    },
+    {
+      "id": "wukong-breaks-formation",
+      "video": "generated/shot-03-breaks-formation.mp4",
+      "prompt": "Sun Wukong launches into a vast descending heavenly formation, races among bronze chariots, spears, and banners, then parts the army and clouds with one golden staff shockwave.",
+      "expect": {
+        "duration_seconds": {"min": 5.0, "max": 5.5},
+        "resolution": {"min_width": 1200, "min_height": 680},
+        "fps": {"min": 23.9},
+        "codecs": ["h264"],
+        "black_frames": {"max_total_ratio": 0.02},
+        "freezes": {"max_total_ratio": 0.05}
+      },
+      "semantic": {
+        "sample_frames": 5,
+        "assertions": [
+          {"id": "airborne-wukong", "description": "The same red-caped armored monkey warrior is visibly airborne and attacking with one stable long staff.", "min_score": 0.72},
+          {"id": "heavenly-formation", "description": "A large readable formation of celestial soldiers, bronze chariots, weapons, and banners fills the cloud battlefield.", "min_score": 0.76},
+          {"id": "formation-broken", "description": "The action visibly parts, scatters, or breaks the formation with a clear golden impact or shockwave.", "min_score": 0.68},
+          {"id": "coherent-action", "description": "Motion, anatomy, staff, chariots, and camera direction remain coherent enough to read as one blockbuster action beat.", "min_score": 0.68},
+          {"id": "no-unwanted-text", "description": "No subtitle, logo, watermark, malformed text, or gore is visible.", "min_score": 0.95}
+        ]
+      }
+    },
+    {
+      "id": "colossal-transformation",
+      "video": "generated/shot-04-colossal-transformation.mp4",
+      "prompt": "A mountain-sized Sun Wukong rises through thunderclouds over tiny palace complexes and circling celestial warships, then swings a continent-long staff across the sky.",
+      "expect": {
+        "duration_seconds": {"min": 5.0, "max": 5.5},
+        "resolution": {"min_width": 1200, "min_height": 680},
+        "fps": {"min": 23.9},
+        "codecs": ["h264"],
+        "black_frames": {"max_total_ratio": 0.02},
+        "freezes": {"max_total_ratio": 0.05}
+      },
+      "semantic": {
+        "sample_frames": 5,
+        "assertions": [
+          {"id": "colossal-wukong", "description": "Sun Wukong is unmistakably mountain-sized while retaining a realistic monkey face, gold armor, crimson cape, crown, and staff.", "min_score": 0.82},
+          {"id": "scale-references", "description": "Tiny palaces, flying warships, armies, or cloud layers provide clear and convincing size references around the giant.", "min_score": 0.80},
+          {"id": "staff-swing", "description": "The giant raises or swings one enormous black-and-gold staff across the sky in a powerful readable action.", "min_score": 0.75},
+          {"id": "mythic-spectacle", "description": "Thunder, cloud walls, atmospheric depth, and armies create an IMAX disaster-film spectacle rather than a close portrait.", "min_score": 0.80},
+          {"id": "no-unwanted-text", "description": "No subtitle, logo, watermark, or malformed text is visible.", "min_score": 0.95}
+        ]
+      }
+    },
+    {
+      "id": "south-heavenly-gate-falls",
+      "video": "generated/shot-05-south-heavenly-gate-falls-final.mp4",
+      "prompt": "Sun Wukong strikes the colossal South Heavenly Gate; jade palaces and bronze towers fracture in a golden shockwave before the camera resolves on him against the burning ruins.",
+      "expect": {
+        "duration_seconds": {"min": 5.0, "max": 5.5},
+        "resolution": {"min_width": 1200, "min_height": 680},
+        "fps": {"min": 23.9},
+        "codecs": ["h264"],
+        "black_frames": {"max_total_ratio": 0.02},
+        "freezes": {"max_total_ratio": 0.05}
+      },
+      "semantic": {
+        "sample_frames": 8,
+        "assertions": [
+          {"id": "gate-impact", "description": "A staff strike or golden shockwave visibly impacts a colossal traditional Chinese heavenly gate or palace complex.", "min_score": 0.72},
+          {"id": "layered-destruction", "description": "White-jade stairs, palaces, towers, columns, fire, dust, or ships show a large-scale readable destruction climax.", "min_score": 0.72},
+          {"id": "final-wukong", "description": "The shot resolves on one realistic armored monkey warrior with crimson cape and long staff standing before burning heavenly ruins.", "min_score": 0.78},
+          {"id": "stable-anatomy", "description": "The hero retains stable anatomy, face, armor, cape, and a single coherent staff without duplicate parts.", "min_score": 0.75},
+          {"id": "no-unwanted-overlay", "description": "No subtitle, logo, watermark, UI overlay, or malformed generated caption is visible; architectural signage alone is allowed.", "min_score": 0.95}
+        ]
+      }
+    }
+  ]
+}

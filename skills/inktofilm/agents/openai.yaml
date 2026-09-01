@@ -1,0 +1,4 @@
+interface:
+  display_name: "InkToFilm"
+  short_description: "Turn one prompt or screenplay into a finished film"
+  default_prompt: "Use $inktofilm to turn my idea into a finished short film."

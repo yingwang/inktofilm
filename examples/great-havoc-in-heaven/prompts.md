@@ -71,7 +71,14 @@ IMAX disaster-film spectacle. No text, subtitles, logos, watermark, or gore.
 ## Shot 5 · The South Heavenly Gate falls
 
 ```text
-Photorealistic live-action Chinese mythological war epic. Five-second climax in one continuous shot.
+Strict five-second staging: In the first second, show a clear side view of normal-sized Sun Wukong
+gripping one perfectly straight black-and-gold staff with both hands, and show the gold-capped tip
+visibly contacting the center of the colossal gate. In seconds two and three, whip the camera
+backward through the golden shockwave while the gate towers and columns fracture in readable layers.
+In the final two seconds, settle on an unobstructed full-body hero shot: one head, two arms, stable
+monkey face and armor, crimson cape, and the entire single perfectly straight staff visible beside
+him from end to end. Photorealistic live-action Chinese mythological war epic. Five-second climax in
+one continuous shot.
 Use the exact normal-sized Sun Wukong character bible above. His black-and-gold staff strikes the
 colossal South Heavenly Gate. White-jade palaces, bronze towers, and monumental columns fracture in
 layers as a golden shockwave crosses the cloud ocean; celestial ships tumble safely through the

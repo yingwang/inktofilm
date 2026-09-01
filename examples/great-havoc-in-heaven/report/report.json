@@ -1,0 +1,1738 @@
+{
+  "schema_version": "1.0",
+  "suite": "great-havoc-in-heaven-theatrical-trailer",
+  "generated_at": "2026-09-01T16:28:15.372449+00:00",
+  "status": "pass",
+  "summary": {
+    "pass": 5,
+    "skipped": 0,
+    "warn": 0,
+    "fail": 0,
+    "error": 0,
+    "total": 5
+  },
+  "cases": [
+    {
+      "id": "celestial-armada-establishing",
+      "video": "generated/shot-01-celestial-armada-768p.mp4",
+      "prompt": "A live-action IMAX-scale aerial shot races through clouds over hundreds of bronze celestial warships and endless heavenly soldiers toward the South Heavenly Gate, where Sun Wukong stands alone.",
+      "status": "pass",
+      "probe": {
+        "path": "generated/shot-01-celestial-armada-768p.mp4",
+        "duration_seconds": 5.166667,
+        "width": 1344,
+        "height": 768,
+        "fps": 24.0,
+        "codec": "h264",
+        "pixel_format": "yuv420p",
+        "frame_count": 124,
+        "has_audio": true,
+        "size_bytes": 7318829
+      },
+      "findings": [
+        {
+          "check": "decode",
+          "status": "pass",
+          "summary": "Video stream is readable",
+          "observed": null,
+          "expected": null,
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "duration",
+          "status": "pass",
+          "summary": "duration is within range",
+          "observed": "5.16667s",
+          "expected": {
+            "min": 5.0,
+            "max": 5.5
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "resolution",
+          "status": "pass",
+          "summary": "Resolution meets minimum",
+          "observed": "1344x768",
+          "expected": {
+            "min_width": 1200,
+            "min_height": 680
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "fps",
+          "status": "pass",
+          "summary": "fps is within range",
+          "observed": "24",
+          "expected": {
+            "min": 23.9
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "codec",
+          "status": "pass",
+          "summary": "Codec is allowed",
+          "observed": "h264",
+          "expected": [
+            "h264"
+          ],
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "black frames",
+          "status": "pass",
+          "summary": "No excessive black frames detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.02
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "freezes",
+          "status": "pass",
+          "summary": "No excessive freezes detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.05
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "semantic:celestial-armada",
+          "status": "pass",
+          "summary": "A monumental celestial force is clearly visible, though the claimed quantity of hundreds of warships is not established.",
+          "observed": {
+            "score": 0.84
+          },
+          "expected": {
+            "min_score": 0.78
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Frames show multiple large bronze-toned flying warships, long formations of armored soldiers, and numerous red war banners around a vast elevated palace approach. The force reads as large and organized, but only several distinct warships and dozens of individually readable soldiers are visible in these samples; “hundreds” and “endless” cannot be verified literally.",
+          "evidence": [
+            {
+              "timestamp_seconds": 1.55,
+              "description": "Several bronze-toned warships and large red banners occupy the foreground and middle ground while the palace complex lies far behind.",
+              "frame_index": 2,
+              "image": "assets/celestial-armada-establishing/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "Symmetrical ranks of armored soldiers and repeated red banners line the monumental stairway and terraces.",
+              "frame_index": 4,
+              "image": "assets/celestial-armada-establishing/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "Long soldier formations and banners visibly recede on both sides of the central warrior.",
+              "frame_index": 5,
+              "image": "assets/celestial-armada-establishing/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "unavailable",
+            "sampling_policy": "Five supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; visible evidence only.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:south-heavenly-gate",
+          "status": "pass",
+          "summary": "A colossal traditional Chinese gate and palace complex clearly dominates the camera's destination.",
+          "observed": {
+            "score": 0.94
+          },
+          "expected": {
+            "min_score": 0.8
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · A multi-tiered complex with sweeping golden roofs, monumental stairs, and a large central decorated gateway remains centered while becoming progressively larger from frames 2 through 5. Its specific name as the South Heavenly Gate is not visibly written or otherwise verifiable, but the requested architectural destination is strongly supported.",
+          "evidence": [
+            {
+              "timestamp_seconds": 1.55,
+              "description": "A distant, centered palace gate with multiple traditional roof tiers appears beyond the ships and clouds.",
+              "frame_index": 2,
+              "image": "assets/celestial-armada-establishing/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "The centered gate and broad stair approach grow substantially larger and dominate the deep background.",
+              "frame_index": 3,
+              "image": "assets/celestial-armada-establishing/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "The monumental central gate, flanking palace roofs, terraces, and stairs fill most of the composition.",
+              "frame_index": 4,
+              "image": "assets/celestial-armada-establishing/frame-04.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "unavailable",
+            "sampling_policy": "Five supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; visible evidence only.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:lone-wukong",
+          "status": "pass",
+          "summary": "One isolated armored monkey-like warrior with a crimson cape and staff is visibly staged on the central approach.",
+          "observed": {
+            "score": 0.88
+          },
+          "expected": {
+            "min_score": 0.72
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Frame 4 shows a single figure isolated on the white stone stair axis between opposing formations. Frame 5 clearly reveals simian facial features, ornate armor, a flowing crimson cape, and a long staff carried behind the shoulder. The sampled stills do not establish with complete certainty that the figure is facing the army, and the identity Sun Wukong cannot be inferred beyond the visible monkey-warrior design.",
+          "evidence": [
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "A single armored figure stands alone at the center of the pale monumental stairs, separated from the surrounding ranks.",
+              "frame_index": 4,
+              "image": "assets/celestial-armada-establishing/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "Close view shows a monkey-like face, ornate gold-and-dark armor, a long crimson cape, and a staff extending behind the shoulder.",
+              "frame_index": 5,
+              "image": "assets/celestial-armada-establishing/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "unavailable",
+            "sampling_policy": "Five supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; visible evidence only.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:scale-and-depth",
+          "status": "pass",
+          "summary": "Foreground, middle ground, and deep background remain distinctly readable at blockbuster scale.",
+          "observed": {
+            "score": 0.93
+          },
+          "expected": {
+            "min_score": 0.78
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · The sequence presents clouds and ship hulls in the foreground, banners and troop formations in the middle ground, and a vast palace complex in the background. Successive samples visibly close distance toward the centered gate and warrior, supporting a forward camera move. Motion blur and dense cloud cover soften some early detail, especially in frame 1, but do not collapse the scene into undifferentiated particles.",
+          "evidence": [
+            {
+              "timestamp_seconds": 1.55,
+              "description": "Near ship hulls and banners frame middle-distance vessels, clouds, and a far palace complex.",
+              "frame_index": 2,
+              "image": "assets/celestial-armada-establishing/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "Foreground ship edges, midground banners and clouds, and the distant architectural destination form clear depth layers.",
+              "frame_index": 3,
+              "image": "assets/celestial-armada-establishing/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "Near stairs, receding soldier lines, elevated terraces, and the enormous palace establish strong perspective and scale.",
+              "frame_index": 4,
+              "image": "assets/celestial-armada-establishing/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "The close warrior, converging troop ranks, banners, clouds, and palace roofs preserve layered spatial depth.",
+              "frame_index": 5,
+              "image": "assets/celestial-armada-establishing/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "unavailable",
+            "sampling_policy": "Five supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; visible evidence only.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:no-unwanted-text",
+          "status": "pass",
+          "summary": "No unwanted text or graphic overlay is visible.",
+          "observed": {
+            "score": 1.0
+          },
+          "expected": {
+            "min_score": 0.95
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Across all five supplied frames, no subtitle, caption, logo, watermark, interface element, or malformed text is visible.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "No text or overlay is visible over the cloud-and-ship imagery.",
+              "frame_index": 1,
+              "image": "assets/celestial-armada-establishing/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 1.55,
+              "description": "No subtitle, logo, watermark, or malformed lettering is visible.",
+              "frame_index": 2,
+              "image": "assets/celestial-armada-establishing/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "The palace, banners, ships, and clouds contain no visible text overlay.",
+              "frame_index": 3,
+              "image": "assets/celestial-armada-establishing/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "No text or branding appears in the palace and stairway composition.",
+              "frame_index": 4,
+              "image": "assets/celestial-armada-establishing/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "The warrior close view and surrounding formations remain free of visible text or watermarks.",
+              "frame_index": 5,
+              "image": "assets/celestial-armada-establishing/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "unavailable",
+            "sampling_policy": "Five supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; visible evidence only.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        }
+      ]
+    },
+    {
+      "id": "monkey-king-looks-up",
+      "video": "generated/shot-02-monkey-king-looks-up.mp4",
+      "prompt": "A low-angle hero reveal orbits Sun Wukong on shattered jade as his red cape lashes, his staff throws sparks, and a vast heavenly army aims spears behind him under storm clouds.",
+      "status": "pass",
+      "probe": {
+        "path": "generated/shot-02-monkey-king-looks-up.mp4",
+        "duration_seconds": 5.166667,
+        "width": 1344,
+        "height": 768,
+        "fps": 24.0,
+        "codec": "h264",
+        "pixel_format": "yuv420p",
+        "frame_count": 124,
+        "has_audio": true,
+        "size_bytes": 8450479
+      },
+      "findings": [
+        {
+          "check": "decode",
+          "status": "pass",
+          "summary": "Video stream is readable",
+          "observed": null,
+          "expected": null,
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "duration",
+          "status": "pass",
+          "summary": "duration is within range",
+          "observed": "5.16667s",
+          "expected": {
+            "min": 5.0,
+            "max": 5.5
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "resolution",
+          "status": "pass",
+          "summary": "Resolution meets minimum",
+          "observed": "1344x768",
+          "expected": {
+            "min_width": 1200,
+            "min_height": 680
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "fps",
+          "status": "pass",
+          "summary": "fps is within range",
+          "observed": "24",
+          "expected": {
+            "min": 23.9
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "codec",
+          "status": "pass",
+          "summary": "Codec is allowed",
+          "observed": "h264",
+          "expected": [
+            "h264"
+          ],
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "black frames",
+          "status": "pass",
+          "summary": "No excessive black frames detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.02
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "freezes",
+          "status": "pass",
+          "summary": "No excessive freezes detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.05
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "semantic:hero-wukong",
+          "status": "pass",
+          "summary": "The frames clearly present one monkey-like armored warrior as the hero subject.",
+          "observed": {
+            "score": 0.91
+          },
+          "expected": {
+            "min_score": 0.78
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · A single central humanoid with visibly simian facial features wears ornate dark-and-gold armor, a crimson cape, and a tall crown-like headpiece while holding a long dark staff with gold fittings. The sampled frames do not independently establish the character's identity as Sun Wukong, but the requested visible design attributes are strongly supported.",
+          "evidence": [
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "Low-angle three-quarter view clearly shows the simian face, glowing eyes, ornate dark-gold armor, crown-like plumes, crimson cape, and long staff.",
+              "frame_index": 3,
+              "image": "assets/monkey-king-looks-up/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "Centered full-body view isolates the warrior as the dominant subject and clearly displays the complete costume and staff.",
+              "frame_index": 5,
+              "image": "assets/monkey-king-looks-up/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all five supplied frames at approximately 1.03-second intervals; no claims made about unsampled moments.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:defiant-reveal",
+          "status": "pass",
+          "summary": "The low viewpoint and composed stance strongly read as a controlled hero reveal.",
+          "observed": {
+            "score": 0.85
+          },
+          "expected": {
+            "min_score": 0.72
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · The camera remains below the warrior's eye level while the composition progresses from a partially cropped side view to a centered full-body presentation. His planted feet, lowered staff, squared shoulders, and still, commanding posture convey controlled defiance. An actual camera orbit and intentional emotional state cannot be proven conclusively from five still samples.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "Very low framing begins near the planted staff and armored legs, emphasizing stature.",
+              "frame_index": 1,
+              "image": "assets/monkey-king-looks-up/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "Three-quarter low-angle view reveals the face and upright, composed posture.",
+              "frame_index": 3,
+              "image": "assets/monkey-king-looks-up/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "Centered frontal composition, wide stance, and lowered staff create a strong final hero tableau.",
+              "frame_index": 5,
+              "image": "assets/monkey-king-looks-up/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all five supplied frames at approximately 1.03-second intervals; no claims made about unsampled moments.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:surrounding-army",
+          "status": "pass",
+          "summary": "A dense formation of soldiers and threatening spears is plainly visible around and behind the hero.",
+          "observed": {
+            "score": 0.89
+          },
+          "expected": {
+            "min_score": 0.75
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Numerous armored soldiers occupy multiple background layers on both sides and behind the central figure. Many hold long spears horizontally or angle them toward the central space, producing a visible encirclement and threat. Some distant figures are softened by haze, but the formation remains unambiguous.",
+          "evidence": [
+            {
+              "timestamp_seconds": 1.55,
+              "description": "Multiple ranks of armored soldiers fill the background, with numerous raised and angled polearms.",
+              "frame_index": 2,
+              "image": "assets/monkey-king-looks-up/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "Soldiers flank the hero and several long spears extend horizontally toward the central area.",
+              "frame_index": 3,
+              "image": "assets/monkey-king-looks-up/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "Symmetrical ranks line both sides of the causeway with spearheads directed inward.",
+              "frame_index": 5,
+              "image": "assets/monkey-king-looks-up/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all five supplied frames at approximately 1.03-second intervals; no claims made about unsampled moments.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:storm-and-scale",
+          "status": "pass",
+          "summary": "Storm effects, colossal silhouettes, and deep army layers create monumental mythic-war scale.",
+          "observed": {
+            "score": 0.96
+          },
+          "expected": {
+            "min_score": 0.75
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Forked lightning is visible across dark turbulent clouds, while enormous shadowy guardian-like forms loom far behind the human-scale figures. Foreground debris, the central warrior, repeated soldier ranks, atmospheric haze, and colossal background shapes establish strong layered depth and scale.",
+          "evidence": [
+            {
+              "timestamp_seconds": 1.55,
+              "description": "Bright branching lightning crosses the storm sky above hazy ranks of soldiers.",
+              "frame_index": 2,
+              "image": "assets/monkey-king-looks-up/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "Lightning and two enormous looming silhouettes appear behind the hero and army.",
+              "frame_index": 3,
+              "image": "assets/monkey-king-looks-up/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "A colossal central figure dominates the distant background while flanking silhouettes and repeated ranks deepen the scene.",
+              "frame_index": 5,
+              "image": "assets/monkey-king-looks-up/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all five supplied frames at approximately 1.03-second intervals; no claims made about unsampled moments.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:no-unwanted-text",
+          "status": "pass",
+          "summary": "No unwanted text or branding is visible in any supplied frame.",
+          "observed": {
+            "score": 0.99
+          },
+          "expected": {
+            "min_score": 0.95
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Across all five sampled frames, no subtitle, logo, watermark, caption, or malformed text is visible. This judgment applies only to the supplied samples, not unseen portions between them.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 1,
+              "image": "assets/monkey-king-looks-up/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 1.55,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 2,
+              "image": "assets/monkey-king-looks-up/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 3,
+              "image": "assets/monkey-king-looks-up/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 4,
+              "image": "assets/monkey-king-looks-up/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 5,
+              "image": "assets/monkey-king-looks-up/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all five supplied frames at approximately 1.03-second intervals; no claims made about unsampled moments.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        }
+      ]
+    },
+    {
+      "id": "wukong-breaks-formation",
+      "video": "generated/shot-03-breaks-formation.mp4",
+      "prompt": "Sun Wukong launches into a vast descending heavenly formation, races among bronze chariots, spears, and banners, then parts the army and clouds with one golden staff shockwave.",
+      "status": "pass",
+      "probe": {
+        "path": "generated/shot-03-breaks-formation.mp4",
+        "duration_seconds": 5.166667,
+        "width": 1344,
+        "height": 768,
+        "fps": 24.0,
+        "codec": "h264",
+        "pixel_format": "yuv420p",
+        "frame_count": 124,
+        "has_audio": true,
+        "size_bytes": 6890438
+      },
+      "findings": [
+        {
+          "check": "decode",
+          "status": "pass",
+          "summary": "Video stream is readable",
+          "observed": null,
+          "expected": null,
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "duration",
+          "status": "pass",
+          "summary": "duration is within range",
+          "observed": "5.16667s",
+          "expected": {
+            "min": 5.0,
+            "max": 5.5
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "resolution",
+          "status": "pass",
+          "summary": "Resolution meets minimum",
+          "observed": "1344x768",
+          "expected": {
+            "min_width": 1200,
+            "min_height": 680
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "fps",
+          "status": "pass",
+          "summary": "fps is within range",
+          "observed": "24",
+          "expected": {
+            "min": 23.9
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "codec",
+          "status": "pass",
+          "summary": "Codec is allowed",
+          "observed": "h264",
+          "expected": [
+            "h264"
+          ],
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "black frames",
+          "status": "pass",
+          "summary": "No excessive black frames detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.02
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "freezes",
+          "status": "pass",
+          "summary": "No excessive freezes detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.05
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "semantic:airborne-wukong",
+          "status": "pass",
+          "summary": "A consistent red-caped armored figure is airborne with one long staff.",
+          "observed": {
+            "score": 0.81
+          },
+          "expected": {
+            "min_score": 0.72
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Frames 1 through 5 show a visually consistent red-caped, armored warrior above clouds or moving through the aerial formation. A single long staff is clearly visible in frames 1, 2, 4, and 5. The figure appears monkey-like most clearly in frame 1, but exact identity and continuous staff stability cannot be proven from sparse samples.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "Red-caped armored, monkey-like warrior crouches above clouds with one long staff across the body.",
+              "frame_index": 1,
+              "image": "assets/wukong-breaks-formation/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 1.55,
+              "description": "The red-caped figure is visibly airborne, with a thin staff projecting upward behind it.",
+              "frame_index": 2,
+              "image": "assets/wukong-breaks-formation/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "The airborne red-caped figure holds a long staff horizontally inside a golden impact sphere.",
+              "frame_index": 4,
+              "image": "assets/wukong-breaks-formation/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "The same visually consistent figure remains airborne at the center of the parted formation.",
+              "frame_index": 5,
+              "image": "assets/wukong-breaks-formation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:heavenly-formation",
+          "status": "pass",
+          "summary": "A large aerial formation of chariots, armored figures, weapons, and banners is readable.",
+          "observed": {
+            "score": 0.86
+          },
+          "expected": {
+            "min_score": 0.76
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Frames 3 and 5 visibly establish numerous bronze-toned wheeled chariots arranged across a cloud battlefield, with armored occupants, projecting spear-like weapons, and many red, white, and gold banners. Individual soldiers are small and partially obscured, but the overall military formation is clear.",
+          "evidence": [
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "The camera looks between large bronze chariots toward armored figures, spear-like weapons, and repeated military banners.",
+              "frame_index": 3,
+              "image": "assets/wukong-breaks-formation/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "Chariots and armored occupants flank the golden impact at both sides.",
+              "frame_index": 4,
+              "image": "assets/wukong-breaks-formation/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "A wide view shows dozens of aerial chariots and banners distributed around the cloud battlefield.",
+              "frame_index": 5,
+              "image": "assets/wukong-breaks-formation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:formation-broken",
+          "status": "pass",
+          "summary": "A clear golden shockwave visibly opens and scatters the formation.",
+          "observed": {
+            "score": 0.91
+          },
+          "expected": {
+            "min_score": 0.68
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Frame 4 shows a large luminous golden spherical shockwave centered on the staff-bearing figure, with surrounding units pushed toward its perimeter. Frame 5 then shows a broad open corridor through the clouds and army, with chariots displaced around the edges. The sampled progression strongly supports a formation-breaking impact, although exact object trajectories are not directly measurable.",
+          "evidence": [
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "Before the impact, chariots and weapons form a dense corridor around the approaching figure.",
+              "frame_index": 3,
+              "image": "assets/wukong-breaks-formation/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "A bright golden spherical shockwave expands around the central figure and staff.",
+              "frame_index": 4,
+              "image": "assets/wukong-breaks-formation/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "The formation and cloud mass are visibly parted into a wide opening, with chariots scattered around the perimeter.",
+              "frame_index": 5,
+              "image": "assets/wukong-breaks-formation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:coherent-action",
+          "status": "pass",
+          "summary": "The samples read as one coherent aerial action beat, with some motion-blur ambiguity.",
+          "observed": {
+            "score": 0.78
+          },
+          "expected": {
+            "min_score": 0.68
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · The sequence progresses legibly from launch, to entry between chariots, to a central golden impact, and finally to a wide parted formation. The red cape, staff, chariots, and forward camera direction remain broadly consistent. Frames 2 and 3 contain heavy blur and distant anatomy, so continuous motion and fine object integrity cannot be fully verified from these still samples.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "The warrior, cape, armor, and staff are clearly readable at the start of the action.",
+              "frame_index": 1,
+              "image": "assets/wukong-breaks-formation/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 1.55,
+              "description": "The same color silhouette continues forward through clouds, though blur obscures anatomy.",
+              "frame_index": 2,
+              "image": "assets/wukong-breaks-formation/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "A forward-looking corridor between chariots maintains the direction of travel.",
+              "frame_index": 3,
+              "image": "assets/wukong-breaks-formation/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "The central figure and horizontal staff remain readable during the impact.",
+              "frame_index": 4,
+              "image": "assets/wukong-breaks-formation/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "The wide aftermath preserves the figure at center and the displaced formation around it.",
+              "frame_index": 5,
+              "image": "assets/wukong-breaks-formation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:no-unwanted-text",
+          "status": "pass",
+          "summary": "No unwanted text, branding, watermark, or gore is visible.",
+          "observed": {
+            "score": 1.0
+          },
+          "expected": {
+            "min_score": 0.95
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · None of the five supplied frames contains subtitles, logos, watermarks, readable malformed text, or gore. Banner emblems are non-textual decorative symbols.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "No text, logo, watermark, or gore is visible.",
+              "frame_index": 1,
+              "image": "assets/wukong-breaks-formation/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 1.55,
+              "description": "No text, logo, watermark, or gore is visible.",
+              "frame_index": 2,
+              "image": "assets/wukong-breaks-formation/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "Banners contain decorative circular emblems but no readable text; no gore is visible.",
+              "frame_index": 3,
+              "image": "assets/wukong-breaks-formation/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "No text, logo, watermark, or gore is visible.",
+              "frame_index": 4,
+              "image": "assets/wukong-breaks-formation/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "No text, logo, watermark, or gore is visible.",
+              "frame_index": 5,
+              "image": "assets/wukong-breaks-formation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Five user-supplied frames sampled at approximately 1.03-second intervals across a 5.17-second video; judgments are limited to visible sampled evidence.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        }
+      ]
+    },
+    {
+      "id": "colossal-transformation",
+      "video": "generated/shot-04-colossal-transformation.mp4",
+      "prompt": "A mountain-sized Sun Wukong rises through thunderclouds over tiny palace complexes and circling celestial warships, then swings a continent-long staff across the sky.",
+      "status": "pass",
+      "probe": {
+        "path": "generated/shot-04-colossal-transformation.mp4",
+        "duration_seconds": 5.166667,
+        "width": 1344,
+        "height": 768,
+        "fps": 24.0,
+        "codec": "h264",
+        "pixel_format": "yuv420p",
+        "frame_count": 124,
+        "has_audio": true,
+        "size_bytes": 7396061
+      },
+      "findings": [
+        {
+          "check": "decode",
+          "status": "pass",
+          "summary": "Video stream is readable",
+          "observed": null,
+          "expected": null,
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "duration",
+          "status": "pass",
+          "summary": "duration is within range",
+          "observed": "5.16667s",
+          "expected": {
+            "min": 5.0,
+            "max": 5.5
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "resolution",
+          "status": "pass",
+          "summary": "Resolution meets minimum",
+          "observed": "1344x768",
+          "expected": {
+            "min_width": 1200,
+            "min_height": 680
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "fps",
+          "status": "pass",
+          "summary": "fps is within range",
+          "observed": "24",
+          "expected": {
+            "min": 23.9
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "codec",
+          "status": "pass",
+          "summary": "Codec is allowed",
+          "observed": "h264",
+          "expected": [
+            "h264"
+          ],
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "black frames",
+          "status": "pass",
+          "summary": "No excessive black frames detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.02
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "freezes",
+          "status": "pass",
+          "summary": "No excessive freezes detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.05
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "semantic:colossal-wukong",
+          "status": "pass",
+          "summary": "Strongly supported, with identity limited to visible character design.",
+          "observed": {
+            "score": 0.91
+          },
+          "expected": {
+            "min_score": 0.82
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Every frame shows a colossal, realistically rendered monkey-faced warrior towering over palace complexes and aircraft. A gold crown, ornate gold armor, crimson cape, and long staff are clearly visible. The design strongly matches the requested visual attributes, although the specific identity cannot be independently established from imagery alone.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "A crowned monkey-faced giant in gold armor and a crimson cape towers over numerous tiny palace roofs.",
+              "frame_index": 1,
+              "image": "assets/colossal-transformation/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "The giant visibly grips a massive dark staff while retaining the same crown, armor, cape, and simian facial features.",
+              "frame_index": 3,
+              "image": "assets/colossal-transformation/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "The frontal view clearly preserves the monkey face, crown, ornate armor, crimson cape, and staff.",
+              "frame_index": 5,
+              "image": "assets/colossal-transformation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 5 supplied frames at approximately 1.03-second intervals.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:scale-references",
+          "status": "pass",
+          "summary": "Clear and convincing scale references surround the giant.",
+          "observed": {
+            "score": 0.97
+          },
+          "expected": {
+            "min_score": 0.8
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Tiny multi-story palace complexes occupy the foreground and lower skyline, while many warships fly around the giant's torso. Later frames add distant massed formations and layered clouds, making the extreme size disparity unambiguous.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "Dense palace roofs and several tiny flying vessels establish the giant as vastly larger than the city.",
+              "frame_index": 1,
+              "image": "assets/colossal-transformation/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "Warships cross in front of the giant's torso while palace towers remain tiny below.",
+              "frame_index": 3,
+              "image": "assets/colossal-transformation/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "Multiple cloud layers, aircraft, palace structures, and distant ordered formations provide extensive scale references.",
+              "frame_index": 5,
+              "image": "assets/colossal-transformation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 5 supplied frames at approximately 1.03-second intervals.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:staff-swing",
+          "status": "pass",
+          "summary": "A powerful staff movement is readable across the sampled sequence.",
+          "observed": {
+            "score": 0.87
+          },
+          "expected": {
+            "min_score": 0.75
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · The staff progresses from a partly obscured angled position to a forceful forward extension and finally a horizontal two-handed hold spanning nearly the full image width. This sequence visibly supports a raise or swing, although sparse sampling cannot establish the exact trajectory or speed continuously. The shaft is predominantly black with decorated metallic end fittings, while its gold coloration is less pronounced than requested.",
+          "evidence": [
+            {
+              "timestamp_seconds": 1.55,
+              "description": "The giant begins extending a long dark staff from the left while rotating his upper body.",
+              "frame_index": 2,
+              "image": "assets/colossal-transformation/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "The staff thrusts prominently across the foreground with both arms engaged and visible motion blur.",
+              "frame_index": 3,
+              "image": "assets/colossal-transformation/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "The staff is held horizontally across nearly the entire sky in a strong frontal pose.",
+              "frame_index": 4,
+              "image": "assets/colossal-transformation/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "The enormous black staff remains fully extended across the frame with ornate metallic end details.",
+              "frame_index": 5,
+              "image": "assets/colossal-transformation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 5 supplied frames at approximately 1.03-second intervals.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:mythic-spectacle",
+          "status": "pass",
+          "summary": "The imagery delivers a large-scale mythic disaster-film spectacle.",
+          "observed": {
+            "score": 0.93
+          },
+          "expected": {
+            "min_score": 0.8
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · Storm clouds, branching lightning, mist layers, distant mountains, fleets, palace skylines, and massed airborne formations create substantial atmospheric depth and battlefield scale. The giant remains centrally framed and relatively close, but the surrounding environment is consistently visible enough that the sequence reads as spectacle rather than merely a portrait.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "A broad stormy skyline contains mountains, palace complexes, haze, and circling vessels around the giant.",
+              "frame_index": 1,
+              "image": "assets/colossal-transformation/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "Branching lightning and turbulent cloud walls fill the sky behind the giant and passing warships.",
+              "frame_index": 4,
+              "image": "assets/colossal-transformation/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "Lightning, deep cloud layers, looming background figures, fleets, and ordered distant formations create an expansive battle tableau.",
+              "frame_index": 5,
+              "image": "assets/colossal-transformation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 5 supplied frames at approximately 1.03-second intervals.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:no-unwanted-text",
+          "status": "pass",
+          "summary": "No unwanted text is visible.",
+          "observed": {
+            "score": 1.0
+          },
+          "expected": {
+            "min_score": 0.95
+          },
+          "intervals": [],
+          "details": "OpenAI Codex visual QA judge · No subtitle, logo, watermark, caption, or malformed text appears in any supplied frame.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.5167,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 1,
+              "image": "assets/colossal-transformation/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 1.55,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 2,
+              "image": "assets/colossal-transformation/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 2.5833,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 3,
+              "image": "assets/colossal-transformation/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 3.6167,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 4,
+              "image": "assets/colossal-transformation/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 4.65,
+              "description": "No text or branding is visible anywhere in the frame.",
+              "frame_index": 5,
+              "image": "assets/colossal-transformation/frame-05.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 5 supplied frames at approximately 1.03-second intervals.",
+            "evaluator": "OpenAI Codex visual QA judge",
+            "vidspec_sampling": "5 evenly spaced center frames"
+          }
+        }
+      ]
+    },
+    {
+      "id": "south-heavenly-gate-falls",
+      "video": "generated/shot-05-south-heavenly-gate-falls-final.mp4",
+      "prompt": "Sun Wukong strikes the colossal South Heavenly Gate; jade palaces and bronze towers fracture in a golden shockwave before the camera resolves on him against the burning ruins.",
+      "status": "pass",
+      "probe": {
+        "path": "generated/shot-05-south-heavenly-gate-falls-final.mp4",
+        "duration_seconds": 5.0,
+        "width": 1344,
+        "height": 768,
+        "fps": 24.0,
+        "codec": "h264",
+        "pixel_format": "yuv420p",
+        "frame_count": 120,
+        "has_audio": true,
+        "size_bytes": 4258918
+      },
+      "findings": [
+        {
+          "check": "decode",
+          "status": "pass",
+          "summary": "Video stream is readable",
+          "observed": null,
+          "expected": null,
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "duration",
+          "status": "pass",
+          "summary": "duration is within range",
+          "observed": "5s",
+          "expected": {
+            "min": 5.0,
+            "max": 5.5
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "resolution",
+          "status": "pass",
+          "summary": "Resolution meets minimum",
+          "observed": "1344x768",
+          "expected": {
+            "min_width": 1200,
+            "min_height": 680
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "fps",
+          "status": "pass",
+          "summary": "fps is within range",
+          "observed": "24",
+          "expected": {
+            "min": 23.9
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "codec",
+          "status": "pass",
+          "summary": "Codec is allowed",
+          "observed": "h264",
+          "expected": [
+            "h264"
+          ],
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "black frames",
+          "status": "pass",
+          "summary": "No excessive black frames detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.02
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "freezes",
+          "status": "pass",
+          "summary": "No excessive freezes detected",
+          "observed": {
+            "seconds": 0,
+            "ratio": 0.0,
+            "events": 0
+          },
+          "expected": {
+            "max_total_ratio": 0.05
+          },
+          "intervals": [],
+          "details": "",
+          "evidence": [],
+          "provenance": {}
+        },
+        {
+          "check": "semantic:gate-impact",
+          "status": "pass",
+          "summary": "Clearly supported by the sampled frames.",
+          "observed": {
+            "score": 0.91
+          },
+          "expected": {
+            "min_score": 0.72
+          },
+          "intervals": [],
+          "details": "Codex visual QA judge · Frame 1 visibly shows an armored monkey warrior driving a long staff into an ornate monumental door or gate. Frame 2 then shows a large golden circular shockwave centered on a traditional Chinese gate structure. The sampled interval does not show the exact instant of contact-to-wave transition, but the visible sequence strongly supports an impact.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.3125,
+              "description": "A long staff is visibly pressed into an ornate gold-and-white monumental gate by an armored monkey warrior.",
+              "frame_index": 1,
+              "image": "assets/south-heavenly-gate-falls/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 0.9375,
+              "description": "A bright golden spherical shockwave visibly expands at the center of a colossal traditional Chinese gate above the clouds.",
+              "frame_index": 2,
+              "image": "assets/south-heavenly-gate-falls/frame-02.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 8 supplied sampled frames in chronological order.",
+            "evaluator": "Codex visual QA judge",
+            "vidspec_sampling": "8 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:layered-destruction",
+          "status": "pass",
+          "summary": "Large-scale destruction is visible and readable.",
+          "observed": {
+            "score": 0.87
+          },
+          "expected": {
+            "min_score": 0.72
+          },
+          "intervals": [],
+          "details": "Codex visual QA judge · Frames 3 through 5 show architectural debris spreading around a large cloud-top palace complex, with cracked monumental columns and surrounding towers and ships. Frames 6 through 8 add extensive fire and smoke across multiple palace roofs and terraces. Dust is not distinctly separable from clouds, and the precise destruction of individual buildings is softened by motion blur and distance.",
+          "evidence": [
+            {
+              "timestamp_seconds": 1.5625,
+              "description": "Numerous large fragments radiate around a multi-tiered palace complex during a motion-blurred destruction beat.",
+              "frame_index": 3,
+              "image": "assets/south-heavenly-gate-falls/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 2.1875,
+              "description": "Two huge white columns are visibly cracked while debris fills the air over jade-colored terraces, towers, and stairs.",
+              "frame_index": 4,
+              "image": "assets/south-heavenly-gate-falls/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 2.8125,
+              "description": "A wide view shows the damaged complex amid clouds, scattered debris, monumental columns, and flying ships.",
+              "frame_index": 5,
+              "image": "assets/south-heavenly-gate-falls/frame-05.jpg"
+            },
+            {
+              "timestamp_seconds": 3.4375,
+              "description": "White stairs and palace terraces stand before multiple burning roofs with heavy black smoke.",
+              "frame_index": 6,
+              "image": "assets/south-heavenly-gate-falls/frame-06.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 8 supplied sampled frames in chronological order.",
+            "evaluator": "Codex visual QA judge",
+            "vidspec_sampling": "8 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:final-wukong",
+          "status": "pass",
+          "summary": "The ending clearly resolves on the requested heroic composition.",
+          "observed": {
+            "score": 0.96
+          },
+          "expected": {
+            "min_score": 0.78
+          },
+          "intervals": [],
+          "details": "Codex visual QA judge · Frames 6 through 8 consistently show one realistic armored monkey warrior standing frontally with a crimson cape and one long staff before burning traditional heavenly architecture. The character's specific identity cannot be established from visible evidence alone, but the requested visual description is strongly satisfied.",
+          "evidence": [
+            {
+              "timestamp_seconds": 3.4375,
+              "description": "One full-body armored monkey warrior holds a long upright staff before burning palace ruins; a large crimson cape streams to the right.",
+              "frame_index": 6,
+              "image": "assets/south-heavenly-gate-falls/frame-06.jpg"
+            },
+            {
+              "timestamp_seconds": 4.0625,
+              "description": "The same centered final composition remains clear, with fire, smoke, white stairs, red flags, armor, cape, and staff visible.",
+              "frame_index": 7,
+              "image": "assets/south-heavenly-gate-falls/frame-07.jpg"
+            },
+            {
+              "timestamp_seconds": 4.6875,
+              "description": "The final sampled frame retains the solitary warrior pose against extensively burning heavenly architecture.",
+              "frame_index": 8,
+              "image": "assets/south-heavenly-gate-falls/frame-08.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 8 supplied sampled frames in chronological order.",
+            "evaluator": "Codex visual QA judge",
+            "vidspec_sampling": "8 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:stable-anatomy",
+          "status": "pass",
+          "summary": "The hero remains coherent across all clearly visible character frames.",
+          "observed": {
+            "score": 0.94
+          },
+          "expected": {
+            "min_score": 0.75
+          },
+          "intervals": [],
+          "details": "Codex visual QA judge · The warrior has a stable head, face, torso, two arms, and two legs in frames 6 through 8. Armor layout, crimson cape, and the single straight staff remain coherent without visible duplicated limbs or equipment. Frame 1 is a partial side view and therefore provides weaker anatomical evidence, but it shows no obvious malformed or duplicated parts.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.3125,
+              "description": "The partial side view shows a coherent head, upper body, gripping hands, armor, cape, and one continuous staff.",
+              "frame_index": 1,
+              "image": "assets/south-heavenly-gate-falls/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 3.4375,
+              "description": "The full-body hero has coherent anatomy, detailed armor, one cape, and one long staff.",
+              "frame_index": 6,
+              "image": "assets/south-heavenly-gate-falls/frame-06.jpg"
+            },
+            {
+              "timestamp_seconds": 4.0625,
+              "description": "Face, limbs, armor, cape, and staff remain visually consistent with frame 6.",
+              "frame_index": 7,
+              "image": "assets/south-heavenly-gate-falls/frame-07.jpg"
+            },
+            {
+              "timestamp_seconds": 4.6875,
+              "description": "The final full-body pose remains stable with no visible duplicate parts or broken staff geometry.",
+              "frame_index": 8,
+              "image": "assets/south-heavenly-gate-falls/frame-08.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 8 supplied sampled frames in chronological order.",
+            "evaluator": "Codex visual QA judge",
+            "vidspec_sampling": "8 evenly spaced center frames"
+          }
+        },
+        {
+          "check": "semantic:no-unwanted-overlay",
+          "status": "pass",
+          "summary": "No unwanted overlay is visible.",
+          "observed": {
+            "score": 1.0
+          },
+          "expected": {
+            "min_score": 0.95
+          },
+          "intervals": [],
+          "details": "Codex visual QA judge · Across all eight supplied frames, no subtitles, captions, logos, watermarks, interface elements, or malformed generated text are visible. No ambiguous text-like overlay appears in the sampled images.",
+          "evidence": [
+            {
+              "timestamp_seconds": 0.3125,
+              "description": "The image contains only the character and architectural scene, with no visible overlay.",
+              "frame_index": 1,
+              "image": "assets/south-heavenly-gate-falls/frame-01.jpg"
+            },
+            {
+              "timestamp_seconds": 0.9375,
+              "description": "The gate and shockwave view contains no visible text, logo, watermark, or UI.",
+              "frame_index": 2,
+              "image": "assets/south-heavenly-gate-falls/frame-02.jpg"
+            },
+            {
+              "timestamp_seconds": 1.5625,
+              "description": "The destruction view contains no visible overlay.",
+              "frame_index": 3,
+              "image": "assets/south-heavenly-gate-falls/frame-03.jpg"
+            },
+            {
+              "timestamp_seconds": 2.1875,
+              "description": "The palace and debris view contains no visible overlay.",
+              "frame_index": 4,
+              "image": "assets/south-heavenly-gate-falls/frame-04.jpg"
+            },
+            {
+              "timestamp_seconds": 2.8125,
+              "description": "The wide cloud-top complex view contains no visible overlay.",
+              "frame_index": 5,
+              "image": "assets/south-heavenly-gate-falls/frame-05.jpg"
+            },
+            {
+              "timestamp_seconds": 3.4375,
+              "description": "The hero shot contains no visible subtitle, logo, watermark, caption, or UI.",
+              "frame_index": 6,
+              "image": "assets/south-heavenly-gate-falls/frame-06.jpg"
+            },
+            {
+              "timestamp_seconds": 4.0625,
+              "description": "The continuing hero shot remains free of visible overlays.",
+              "frame_index": 7,
+              "image": "assets/south-heavenly-gate-falls/frame-07.jpg"
+            },
+            {
+              "timestamp_seconds": 4.6875,
+              "description": "The final sampled frame remains free of visible overlays.",
+              "frame_index": 8,
+              "image": "assets/south-heavenly-gate-falls/frame-08.jpg"
+            }
+          ],
+          "provenance": {
+            "model": "gpt-5",
+            "revision": "2026-09-01",
+            "judge_prompt_hash": "not-applicable",
+            "sampling_policy": "Evaluated all 8 supplied sampled frames in chronological order.",
+            "evaluator": "Codex visual QA judge",
+            "vidspec_sampling": "8 evenly spaced center frames"
+          }
+        }
+      ]
+    }
+  ]
+}
