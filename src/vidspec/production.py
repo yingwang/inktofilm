@@ -59,7 +59,19 @@ class ProductionPlan:
     shots: List[ShotSpec]
 
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        """Serialise so that parse_plan reads back exactly this plan.
+
+        face_reference is written as the full list when a shot swaps two faces and as a
+        string when it swaps one, and the derived face_references field is not written, so
+        the plan a production writes into its bundle survives the round trip intact.
+        """
+        raw = asdict(self)
+        for shot in raw["shots"]:
+            references = shot.pop("face_references", [])
+            shot["face_reference"] = references if len(references) > 1 else (
+                references[0] if references else ""
+            )
+        return raw
 
 
 PRODUCTION_PLAN_SCHEMA: Dict[str, Any] = {
@@ -199,6 +211,8 @@ DEFAULT_CONTINUATION_OFFSET = 0.4
 def _face_references(raw: Mapping[str, Any], character_ids: set, shot_id: str) -> List[str]:
     """Read face_reference as one character_id or a list of them."""
     value = raw.get("face_reference", "")
+    if (value is None or value == "") and raw.get("face_references"):
+        value = raw.get("face_references")
     if value is None or value == "":
         return []
     if isinstance(value, str):

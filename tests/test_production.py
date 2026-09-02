@@ -1111,3 +1111,36 @@ def test_cli_gender_map_checks_names_and_values(tmp_path):
         _gender_map(["hero=male"], {"heroine": her})
     with pytest.raises(ProductionError, match="CHARACTER_ID=GENDER"):
         _gender_map(["heroine"], {"heroine": her})
+
+
+def test_plan_round_trips_through_to_dict_without_losing_faces_or_continuations():
+    raw = _raw_plan()
+    raw["characters"].append({"character_id": "guard", "name": "Guard", "description": "white"})
+    raw["shots"][0]["still_prompt"] = "a still"
+    raw["shots"][0]["face_reference"] = ["traveler", "guard"]
+    raw["shots"].append(
+        {
+            "shot_id": "again",
+            "scene": "gate",
+            "duration_seconds": 5,
+            "prompt": "p",
+            "dialogue": "",
+            "assertions": ["a"],
+            "continue_from_previous": True,
+            "face_reference": "guard",
+        }
+    )
+    first = parse_plan(raw)
+    serialised = first.to_dict()
+    # Two faces stay a list and one face stays a string; the derived field is not written.
+    assert serialised["shots"][0]["face_reference"] == ["traveler", "guard"]
+    assert serialised["shots"][1]["face_reference"] == "guard"
+    assert "face_references" not in serialised["shots"][0]
+    second = parse_plan(json.loads(json.dumps(serialised)))
+    assert second == first
+    assert second.shots[0].face_references == ["traveler", "guard"]
+    assert second.shots[1].continue_from_previous == 0.4
+    # A plan file that still carries a face_references list is read the same way.
+    raw["shots"][0]["face_reference"] = ""
+    raw["shots"][0]["face_references"] = ["traveler", "guard"]
+    assert parse_plan(raw).shots[0].face_references == ["traveler", "guard"]
