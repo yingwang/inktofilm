@@ -75,6 +75,14 @@ inktofilm produce screenplay.md --plan plan.json --no-judge --reshoot shot-02 -o
 Each video prompt describes only the characters the shot lists under `characters`, which keeps a
 single-character shot from acquiring the rest of the cast in its background.
 
+## Reviewing takes by eye and by curve
+
+`inktofilm frames take.mp4` writes the evenly spaced frames a judge would see. `inktofilm motion
+take.mp4` prints a motion-energy curve: the mean absolute luminance change between consecutive
+frames, averaged per half second (`--bucket` changes the width), with a bar per bucket. It answers
+"does this fight have a rhythm" without playing the clip: bursts separated by a lull read as
+tempo, a flat line reads as floating, and values near zero mean nothing moved.
+
 ## Stills, faces, and chained shots
 
 The plan decides these per shot, and the manifest records what each shot actually used.

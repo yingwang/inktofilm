@@ -87,3 +87,21 @@ def test_extract_frame_seeks_to_the_timestamp_and_keeps_full_size(monkeypatch, t
         assert "boom" in str(exc)
     else:
         raise AssertionError("a failed ffmpeg run must raise")
+
+
+def test_motion_energy_averages_frame_differences_per_bucket(monkeypatch, tmp_path):
+    video = tmp_path / "clip.mp4"
+    video.write_bytes(b"video")
+    stdout = "\n".join(
+        [
+            "frame:1 pts:1 pts_time:0.04", "lavfi.signalstats.YAVG=2.0",
+            "frame:2 pts:2 pts_time:0.30", "lavfi.signalstats.YAVG=4.0",
+            "frame:3 pts:3 pts_time:0.60", "lavfi.signalstats.YAVG=10.0",
+            "frame:4 pts:4 pts_time:1.60", "lavfi.signalstats.YAVG=1.0",
+        ]
+    )
+    monkeypatch.setattr(media, "require_tool", lambda name: name)
+    curve = media.motion_energy(video, 0.5, lambda *args, **kwargs: completed(stdout))
+    # Bucket 0 averages the first two frames, bucket 2 has no frames and reads as zero.
+    assert curve == [3.0, 10.0, 0.0, 1.0]
+    assert media.motion_energy(video, 0.5, lambda *args, **kwargs: completed("")) == []

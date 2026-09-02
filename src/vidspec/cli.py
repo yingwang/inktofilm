@@ -15,7 +15,7 @@ from vidspec import __version__
 from vidspec.compare import ComparisonError, compare_report_files, output_paths, write_comparison
 from vidspec.config import ConfigurationError, load_suite
 from vidspec.engine import run_suite
-from vidspec.media import MediaToolError, probe_video
+from vidspec.media import MediaToolError, motion_energy, probe_video
 from vidspec.models import STATUS_ORDER
 from vidspec.produce import ProductionOrchestrator
 from vidspec.production import (
@@ -94,6 +94,18 @@ def _parser() -> argparse.ArgumentParser:
         "--output",
         "-o",
         help="directory to hold the frames (default: a frames/ directory beside the video)",
+    )
+
+    motion = commands.add_parser(
+        "motion",
+        help="print a motion-energy curve per half second, to judge tempo without watching",
+    )
+    motion.add_argument("video")
+    motion.add_argument(
+        "--bucket",
+        type=float,
+        default=0.5,
+        help="seconds per bucket (default: 0.5)",
     )
 
     run = commands.add_parser("run", help="run a JSON test suite")
@@ -336,6 +348,17 @@ def _run(args: argparse.Namespace) -> int:
         print(json.dumps(probe.to_dict(), indent=2))
         return 0
 
+    if args.command == "motion":
+        video = Path(args.video).resolve()
+        if not video.is_file():
+            print(f"No such video: {video}", file=sys.stderr)
+            return 2
+        curve = motion_energy(video, args.bucket)
+        peak = max(curve) if curve else 0.0
+        for index, value in enumerate(curve):
+            bar = "#" * int(round(40 * value / peak)) if peak else ""
+            print(f"{index * args.bucket:5.1f}s {value:6.2f} {bar}")
+        return 0
     if args.command == "frames":
         if not 1 <= args.count <= 24:
             raise ConfigurationError("--count must be between 1 and 24")

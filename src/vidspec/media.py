@@ -162,6 +162,60 @@ def detect_freezes(
     return intervals
 
 
+_MOTION_TIME_RE = re.compile(r"pts_time:(?P<time>[0-9.]+)")
+_MOTION_VALUE_RE = re.compile(r"lavfi\.signalstats\.YAVG=(?P<value>[0-9.]+)")
+
+
+def motion_energy(
+    path: Path,
+    bucket_seconds: float = 0.5,
+    runner: Runner = subprocess.run,
+) -> List[float]:
+    """Mean frame-to-frame luminance change per time bucket, as a tempo curve.
+
+    Each frame is differenced against the one before it and the average absolute change is
+    read from `signalstats`; averaging those per bucket gives a curve a reviewer can read as
+    rhythm without watching the clip: a fight with a real beat shows bursts and a lull, a
+    floating one shows a flat line, and a shot that never moves shows values near zero.
+    """
+    if bucket_seconds <= 0:
+        raise MediaToolError("bucket_seconds must be positive")
+    ffmpeg = require_tool("ffmpeg")
+    command = [
+        ffmpeg,
+        "-hide_banner",
+        "-nostats",
+        "-i",
+        str(path),
+        "-vf",
+        "scale=320:-2,tblend=all_mode=difference,signalstats,"
+        "metadata=print:key=lavfi.signalstats.YAVG:file=-",
+        "-f",
+        "null",
+        "-",
+    ]
+    completed = runner(command, capture_output=True, text=True, check=False)
+    if completed.returncode != 0:
+        raise MediaToolError(completed.stderr.strip() or "ffmpeg could not measure motion")
+    sums: Dict[int, float] = {}
+    counts: Dict[int, int] = {}
+    current = 0.0
+    for line in completed.stdout.splitlines():
+        time_match = _MOTION_TIME_RE.search(line)
+        if time_match:
+            current = float(time_match.group("time"))
+            continue
+        value_match = _MOTION_VALUE_RE.search(line)
+        if value_match:
+            bucket = int(current / bucket_seconds)
+            sums[bucket] = sums.get(bucket, 0.0) + float(value_match.group("value"))
+            counts[bucket] = counts.get(bucket, 0) + 1
+    if not sums:
+        return []
+    last = max(sums)
+    return [round(sums.get(i, 0.0) / counts[i], 2) if counts.get(i) else 0.0 for i in range(last + 1)]
+
+
 def extract_frame(
     path: Path,
     timestamp_seconds: float,

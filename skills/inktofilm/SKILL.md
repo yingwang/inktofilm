@@ -146,6 +146,16 @@ missing work is paid for.
   exchanges ("three cuts and three parries in the first two seconds"), name the stop ("blades lock,
   one held beat"), then the release ("she breaks the lock and the next flurry is faster"), and let a
   speed ramp exist only at one impact. Contrast is what reads as rhythm; uniform grace reads as slow.
+  Check the result without watching it: `inktofilm motion take.mp4` prints the mean frame-to-frame
+  change per half second. A fight with a beat shows two bursts around a lull (values near 10 falling
+  to 2 and rising again); a floating one is a flat line, and a talking head sits near 1.
+- When a shot continues from a dialogue take, the handoff frame is cut 0.4 s before the end, and a
+  line that is still being spoken there loses its last syllable at the join. Read the word
+  timestamps before choosing the offset: either give the dialogue shot a second more than its lines
+  need so the last word ends before the handoff, or set `continue_from_previous` to a smaller
+  number, or, in the edit, let the outgoing picture run a few frames past the handoff (four repeated
+  frames are invisible; a clipped word is not). An audio-only L-cut is the other repair, and only
+  works when the incoming take does not start speaking at once.
 - A downward exit reads as a fall. A figure who "steps off the eave and drops into the mist" is
   seen by a viewer as someone jumping off a building, however light the prompt makes it. End a
   rooftop scene on the roof (a toast, a sheathed sword, a look), or take the descent in a shot of
