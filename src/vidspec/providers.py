@@ -437,6 +437,13 @@ class FalFaceSwapper:
         )
         if not destination.is_file() or destination.stat().st_size == 0:
             raise ProviderError("the strip face swap produced no image")
+        # The strips were scaffolding; only the composited frame belongs in the bundle.
+        for _, swapped in strips:
+            for scrap in (swapped, swapped.with_name(swapped.name.replace("-swapped", "", 1))):
+                try:
+                    scrap.unlink()
+                except OSError:
+                    pass
         return destination
 
 

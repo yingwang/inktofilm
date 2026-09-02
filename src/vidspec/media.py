@@ -200,6 +200,7 @@ def motion_energy(
     sums: Dict[int, float] = {}
     counts: Dict[int, int] = {}
     current = 0.0
+    seen = 0
     for line in completed.stdout.splitlines():
         time_match = _MOTION_TIME_RE.search(line)
         if time_match:
@@ -207,6 +208,12 @@ def motion_energy(
             continue
         value_match = _MOTION_VALUE_RE.search(line)
         if value_match:
+            seen += 1
+            if seen == 1:
+                # tblend has nothing to difference the first frame against and passes
+                # it through, so its YAVG is the frame's own brightness, not motion;
+                # counting it inflated the first bucket of every curve.
+                continue
             bucket = int(current / bucket_seconds)
             sums[bucket] = sums.get(bucket, 0.0) + float(value_match.group("value"))
             counts[bucket] = counts.get(bucket, 0) + 1

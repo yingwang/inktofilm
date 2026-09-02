@@ -30,6 +30,21 @@ class VideoProbe:
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
+    @classmethod
+    def from_dict(cls, raw: Dict[str, Any]) -> "VideoProbe":
+        return cls(
+            path=str(raw.get("path", "")),
+            duration_seconds=float(raw.get("duration_seconds", 0.0)),
+            width=int(raw.get("width", 0)),
+            height=int(raw.get("height", 0)),
+            fps=float(raw.get("fps", 0.0)),
+            codec=str(raw.get("codec", "unknown")),
+            pixel_format=str(raw.get("pixel_format", "")),
+            frame_count=raw.get("frame_count"),
+            has_audio=bool(raw.get("has_audio", False)),
+            size_bytes=int(raw.get("size_bytes", 0)),
+        )
+
 
 @dataclass
 class Interval:
@@ -46,6 +61,10 @@ class Interval:
         value["duration_seconds"] = round(self.duration_seconds, 4)
         return value
 
+    @classmethod
+    def from_dict(cls, raw: Dict[str, Any]) -> "Interval":
+        return cls(float(raw["start_seconds"]), float(raw["end_seconds"]), str(raw.get("kind", "")))
+
 
 @dataclass
 class Evidence:
@@ -58,6 +77,15 @@ class Evidence:
         value = asdict(self)
         value["timestamp_seconds"] = round(self.timestamp_seconds, 4)
         return value
+
+    @classmethod
+    def from_dict(cls, raw: Dict[str, Any]) -> "Evidence":
+        return cls(
+            timestamp_seconds=float(raw.get("timestamp_seconds", 0.0)),
+            description=str(raw.get("description", "")),
+            frame_index=raw.get("frame_index"),
+            image=str(raw.get("image", "")),
+        )
 
 
 @dataclass
@@ -85,6 +113,20 @@ class Finding:
             "provenance": self.provenance,
         }
 
+    @classmethod
+    def from_dict(cls, raw: Dict[str, Any]) -> "Finding":
+        return cls(
+            check=str(raw["check"]),
+            status=str(raw["status"]),
+            summary=str(raw.get("summary", "")),
+            observed=raw.get("observed"),
+            expected=raw.get("expected"),
+            intervals=[Interval.from_dict(item) for item in raw.get("intervals", [])],
+            details=str(raw.get("details", "")),
+            evidence=[Evidence.from_dict(item) for item in raw.get("evidence", [])],
+            provenance=dict(raw.get("provenance", {}) or {}),
+        )
+
 
 @dataclass
 class CaseReport:
@@ -107,6 +149,18 @@ class CaseReport:
             "probe": self.probe.to_dict() if self.probe else None,
             "findings": [finding.to_dict() for finding in self.findings],
         }
+
+    @classmethod
+    def from_dict(cls, raw: Dict[str, Any]) -> "CaseReport":
+        """Rebuild a report written by to_dict, for verdicts cached between runs."""
+        probe = raw.get("probe")
+        return cls(
+            case_id=str(raw["id"]),
+            video=str(raw.get("video", "")),
+            prompt=str(raw.get("prompt", "")),
+            probe=VideoProbe.from_dict(probe) if isinstance(probe, dict) else None,
+            findings=[Finding.from_dict(item) for item in raw.get("findings", [])],
+        )
 
 
 @dataclass

@@ -102,6 +102,7 @@ def test_motion_energy_averages_frame_differences_per_bucket(monkeypatch, tmp_pa
     )
     monkeypatch.setattr(media, "require_tool", lambda name: name)
     curve = media.motion_energy(video, 0.5, lambda *args, **kwargs: completed(stdout))
-    # Bucket 0 averages the first two frames, bucket 2 has no frames and reads as zero.
-    assert curve == [3.0, 10.0, 0.0, 1.0]
+    # The first frame is tblend's pass-through (its own brightness, not a difference)
+    # and is skipped; bucket 0 is therefore frame 2 alone, bucket 2 has no frames.
+    assert curve == [4.0, 10.0, 0.0, 1.0]
     assert media.motion_energy(video, 0.5, lambda *args, **kwargs: completed("")) == []

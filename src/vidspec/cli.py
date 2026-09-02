@@ -410,15 +410,26 @@ def _run(args: argparse.Namespace) -> int:
         return int(result["regressions"] > 0)
 
     if args.command == "doctor":
+        # Required for any production: media tools, the fal client and a key.
         checks = {
-            "codex CLI": shutil.which("codex") is not None,
             "ffmpeg": shutil.which("ffmpeg") is not None,
             "ffprobe": shutil.which("ffprobe") is not None,
             "fal-client": importlib.util.find_spec("fal_client") is not None,
             "FAL_KEY": bool(os.environ.get("FAL_KEY")),
         }
+        # Either agent CLI can plan and judge; neither is required when the
+        # running agent does that work itself and replays its verdicts.
+        agents = {
+            "codex CLI": shutil.which("codex") is not None,
+            "claude CLI": shutil.which("claude") is not None,
+        }
         for name, ready in checks.items():
-            print(f"{'ready' if ready else 'missing':7} {name}")
+            print(f"{'ready' if ready else 'missing':8} {name}")
+        for name, ready in agents.items():
+            print(f"{'ready' if ready else 'optional':8} {name}")
+        if not any(agents.values()):
+            print("note: no agent CLI found; --judge-claude and --semantic-codex need one, "
+                  "judging in the loop with --semantic-results does not")
         return int(not all(checks.values()))
 
     if args.command == "produce":

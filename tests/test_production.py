@@ -1144,3 +1144,90 @@ def test_plan_round_trips_through_to_dict_without_losing_faces_or_continuations(
     raw["shots"][0]["face_reference"] = ""
     raw["shots"][0]["face_references"] = ["traveler", "guard"]
     assert parse_plan(raw).shots[0].face_references == ["traveler", "guard"]
+
+
+
+def test_ffmpeg_editor_normalizes_clips_and_encodes_at_high_quality(tmp_path, monkeypatch):
+    import subprocess
+
+    from vidspec.models import VideoProbe
+    from vidspec.produce import FFmpegEditor
+
+    root = tmp_path / "film"
+    root.mkdir()
+    first, second = root / "shot-01.mp4", root / "shot-02.mp4"
+    first.write_bytes(b"a")
+    second.write_bytes(b"b")
+    probes = {
+        first: VideoProbe(str(first), 5.0, 1344, 768, 24.0, "h264", has_audio=True),
+        second: VideoProbe(str(second), 6.0, 1280, 720, 25.0, "h264", has_audio=False),
+    }
+    commands = []
+
+    def runner(command, **kwargs):
+        commands.append(command)
+        (root / "final.mp4").write_bytes(b"mp4")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setattr("vidspec.produce.shutil.which", lambda name: f"/usr/bin/{name}")
+    out = FFmpegEditor(runner=runner, prober=lambda clip: probes[clip]).concat([first, second], root / "final.mp4")
+    assert out.is_file()
+    command = commands[0]
+    graph = command[command.index("-filter_complex") + 1]
+    # Every clip is brought to the first clip's frame and rate; the silent one gets a silent track.
+    assert "scale=1344:768:force_original_aspect_ratio=decrease" in graph
+    assert "fps=24" in graph
+    assert "anullsrc=r=48000:cl=stereo" in command
+    assert "concat=n=2:v=1:a=1[v][a]" in graph
+    assert command[command.index("-crf") + 1] == "16"
+    assert command[command.index("-preset") + 1] == "slow"
+
+
+
+def test_existing_attempts_keep_their_verdict_across_runs(tmp_path, monkeypatch):
+    plan = ProductionPlan(
+        title="Cache Test",
+        visual_style="cinematic",
+        aspect_ratio="16:9",
+        characters=[],
+        shots=[ShotSpec("arrival", "temple gate", 5, "Traveler enters", "", ["Traveler is visible"])],
+    )
+
+    class Generator:
+        @staticmethod
+        def generate(prompt, duration_seconds, aspect_ratio, destination):
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(b"video")
+            return destination
+
+    class Editor:
+        @staticmethod
+        def concat(clips, destination):
+            destination.write_bytes(b"film")
+            return destination
+
+    calls = []
+
+    def fake_evaluate(spec, base_dir, **kwargs):
+        calls.append(spec.case_id)
+        return CaseReport(spec.case_id, spec.video, spec.prompt, None,
+                          [Finding("semantic:visible-01", "pass", "Visible")])
+
+    monkeypatch.setattr("vidspec.produce.evaluate_case", fake_evaluate)
+    orchestrator = ProductionOrchestrator(None, generator=Generator(), evaluator=object(), editor=Editor())
+    orchestrator.produce("A traveler.", tmp_path / "production", plan=plan)
+    assert calls == ["arrival"]
+    assert (tmp_path / "production" / "assets" / "attempt-1" / "arrival" / "verdict.json").is_file()
+    # The second run finds the take and its verdict on disk and judges nothing.
+    result = orchestrator.produce("A traveler.", tmp_path / "production", plan=plan)
+    assert calls == ["arrival"]
+    manifest = json.loads(result.manifest.read_text(encoding="utf-8"))
+    assert manifest["shots"][0]["status"] == "pass"
+
+
+def test_report_root_is_the_directory_beside_assets(tmp_path):
+    from vidspec.semantic import report_root
+
+    assert report_root(tmp_path / "out" / "assets") == tmp_path / "out"
+    assert report_root(tmp_path / "out" / "assets" / "attempt-2") == tmp_path / "out"
+    assert report_root(tmp_path / "elsewhere") == tmp_path

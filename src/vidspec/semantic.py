@@ -89,6 +89,21 @@ def _safe_id(value: str) -> str:
     return cleaned or "case"
 
 
+def report_root(evidence_root: Path) -> Path:
+    """The directory the HTML report lives in, for an evidence directory under it.
+
+    `run` writes its report beside `assets/`; `produce` keeps one evidence directory per
+    attempt under `assets/attempt-N/` and writes its report beside `assets/` too. Evidence
+    paths in a report are relative to that directory, so they are derived from the nearest
+    ancestor called `assets` rather than assumed to be `assets/<case>/`, which was only
+    true for `run` and left every evidence image in a produce report a broken link.
+    """
+    for ancestor in (evidence_root, *evidence_root.parents):
+        if ancestor.name == "assets":
+            return ancestor.parent
+    return evidence_root.parent
+
+
 def sample_frames(
     video_path: Path,
     duration_seconds: float,
@@ -98,6 +113,7 @@ def sample_frames(
 ) -> List[SampledFrame]:
     case_dir = evidence_root / _safe_id(case_id)
     case_dir.mkdir(parents=True, exist_ok=True)
+    root = report_root(evidence_root)
     frames: List[SampledFrame] = []
     for offset in range(count):
         timestamp = duration_seconds * (offset + 0.5) / count
@@ -128,12 +144,16 @@ def sample_frames(
         if completed.returncode or not path.is_file():
             message = completed.stderr.strip() or "FFmpeg did not produce a frame"
             raise SemanticEvaluationError(f"Could not sample semantic evidence: {message}")
+        try:
+            relative = path.resolve().relative_to(root.resolve()).as_posix()
+        except ValueError:
+            relative = f"assets/{_safe_id(case_id)}/{name}"
         frames.append(
             SampledFrame(
                 index=offset + 1,
                 timestamp_seconds=timestamp,
                 path=path,
-                report_path=f"assets/{_safe_id(case_id)}/{name}",
+                report_path=relative,
             )
         )
     return frames

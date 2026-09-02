@@ -41,7 +41,12 @@ model rather than two and lets the agent notice what no assertion happened to as
 worth keeping in mind, because either judge only scores the assertions the plan actually wrote.
 
 `--plan-only` performs no paid video generation. Normal production preserves every attempt and can
-retry failed shots. A retry re-shoots the clip and keeps the still, since the still is the settled
+retry failed shots. A take that was judged in an earlier run keeps its verdict
+(`assets/attempt-N/<shot>/verdict.json`) and is not sent to the judge again; delete that file to
+re-judge it. The plain cut is assembled with every clip scaled and padded to the first clip's frame,
+one frame rate, a stereo 48 kHz track (silence where a clip has none) and an x264 encode at CRF 16
+with the slow preset, so clips from different providers cut together and the film that leaves
+`produce` is not the lossy one. A retry re-shoots the clip and keeps the still, since the still is the settled
 composition and only the motion failed. Credentials are read from the environment and are not written
 to the bundle.
 

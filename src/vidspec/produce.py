@@ -84,10 +84,23 @@ class ProductionResult:
 
 
 class FFmpegEditor:
-    """Normalize and concatenate generated shots into one portable MP4."""
+    """Normalize and concatenate generated shots into one portable MP4.
 
-    def __init__(self, runner: Any = subprocess.run):
+    Every clip is scaled and padded to the first clip's frame, brought to one frame rate,
+    given a stereo 48 kHz track (silence where the source has none), and the pieces are
+    joined through the concat filter, so shots from different providers, or a shot with no
+    audio, cut together without ffmpeg's concat demuxer choking on mismatched streams. The
+    encode is CRF 16 with the slow preset: the plain cut is the film the user gets when no
+    hand assembly follows, and it must not be the lossy one.
+    """
+
+    CRF = 16
+    PRESET = "slow"
+    AUDIO_RATE = 48000
+
+    def __init__(self, runner: Any = subprocess.run, prober: Any = probe_video):
         self.runner = runner
+        self.prober = prober
 
     def concat(self, clips: Sequence[Path], destination: Path) -> Path:
         if not clips:
@@ -96,38 +109,59 @@ class FFmpegEditor:
             raise ProductionError("ffmpeg is required to assemble the final film")
         destination.parent.mkdir(parents=True, exist_ok=True)
         root = destination.parent.resolve()
-        lines = []
+        probes = []
         for clip in clips:
             try:
-                relative = clip.resolve().relative_to(root)
+                clip.resolve().relative_to(root)
             except ValueError as exc:
                 raise ProductionError("Generated shot is outside the production directory") from exc
-            if "'" in str(relative) or "\n" in str(relative):
-                raise ProductionError("Generated shot path contains unsupported characters")
-            lines.append(f"file '{relative.as_posix()}'")
-        concat_path = root / "concat.txt"
-        concat_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        command = [
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-f",
-            "concat",
-            "-safe",
-            "0",
-            "-i",
-            concat_path.name,
-            "-c:v",
-            "libx264",
-            "-pix_fmt",
-            "yuv420p",
-            "-c:a",
-            "aac",
-            "-movflags",
-            "+faststart",
-            "-y",
-            destination.name,
+            try:
+                probes.append(self.prober(clip))
+            except MediaToolError as exc:
+                raise ProductionError(f"Could not inspect {clip.name}: {exc}") from exc
+
+        width = probes[0].width or 1344
+        height = probes[0].height or 768
+        fps = round(probes[0].fps) if probes[0].fps > 0 else 24
+        with_audio = any(probe.has_audio for probe in probes)
+
+        command: List[str] = ["ffmpeg", "-hide_banner", "-loglevel", "error"]
+        filters: List[str] = []
+        labels: List[str] = []
+        silence_inputs = 0
+        for index, (clip, probe) in enumerate(zip(clips, probes)):
+            command += ["-i", str(clip.resolve())]
+            filters.append(
+                f"[{index}:v]scale={width}:{height}:force_original_aspect_ratio=decrease,"
+                f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,fps={fps},format=yuv420p,setsar=1[v{index}]"
+            )
+            labels.append(f"[v{index}]")
+            if with_audio:
+                if probe.has_audio:
+                    filters.append(
+                        f"[{index}:a]aformat=sample_rates={self.AUDIO_RATE}:channel_layouts=stereo,"
+                        f"asetpts=PTS-STARTPTS[a{index}]"
+                    )
+                else:
+                    # A silent clip still needs a track of its own length for the join.
+                    silence_index = len(clips) + silence_inputs
+                    silence_inputs += 1
+                    command += [
+                        "-f", "lavfi", "-t", f"{max(probe.duration_seconds, 0.04):.3f}",
+                        "-i", f"anullsrc=r={self.AUDIO_RATE}:cl=stereo",
+                    ]
+                    filters.append(f"[{silence_index}:a]asetpts=PTS-STARTPTS[a{index}]")
+                labels.append(f"[a{index}]")
+        if with_audio:
+            filters.append(f"{''.join(labels)}concat=n={len(clips)}:v=1:a=1[v][a]")
+        else:
+            filters.append(f"{''.join(labels)}concat=n={len(clips)}:v=1:a=0[v]")
+        command += ["-filter_complex", ";".join(filters), "-map", "[v]"]
+        if with_audio:
+            command += ["-map", "[a]", "-c:a", "aac", "-b:a", "192k"]
+        command += [
+            "-c:v", "libx264", "-crf", str(self.CRF), "-preset", self.PRESET,
+            "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-y", str(destination.resolve()),
         ]
         try:
             completed = self.runner(command, capture_output=True, text=True, cwd=str(root))
@@ -519,12 +553,33 @@ class ProductionOrchestrator:
                     self._shoot(plan, position, prompt, clip_path, stills)
                 relative = clip_path.relative_to(output_dir).as_posix()
                 case = _case_spec(shot, relative, prompt)
-                report = evaluate_case(
-                    case,
-                    output_dir,
-                    semantic_evaluator=self.evaluator,
-                    evidence_root=output_dir / "assets" / f"attempt-{attempt}",
-                )
+                evidence_root = output_dir / "assets" / f"attempt-{attempt}"
+                verdict_path = evidence_root / shot.shot_id / "verdict.json"
+                cached = None
+                if not generated and self.evaluator is not None and verdict_path.is_file():
+                    # A take already judged in an earlier run keeps its verdict; judging it
+                    # again would cost another model call and could change a settled result.
+                    try:
+                        cached = CaseReport.from_dict(
+                            json.loads(verdict_path.read_text(encoding="utf-8"))
+                        )
+                    except (OSError, ValueError, KeyError, TypeError):
+                        cached = None
+                if cached is not None:
+                    report = cached
+                else:
+                    report = evaluate_case(
+                        case,
+                        output_dir,
+                        semantic_evaluator=self.evaluator,
+                        evidence_root=evidence_root,
+                    )
+                    if self.evaluator is not None:
+                        verdict_path.parent.mkdir(parents=True, exist_ok=True)
+                        verdict_path.write_text(
+                            json.dumps(report.to_dict(), ensure_ascii=False, indent=2) + "\n",
+                            encoding="utf-8",
+                        )
                 attempts.append(
                     {
                         "attempt": attempt,
