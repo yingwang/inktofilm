@@ -236,6 +236,13 @@ missing work is paid for.
   spider-themed superhero suit with a black web pattern and a small spider emblem") and never the
   name: the image and video models then render it without balking, and the film stays a private
   homage. A mask hides the face the user asked for, so plan the close shots mask-off.
+- A selfie is a distorted reference. A phone held below the chin at arm's length widens the face,
+  flattens the hair and enlarges the glasses, and every portrait, still and swap built on it will be
+  "not quite him" to anyone who knows him. Before building a likeness, ask for one or two photos
+  taken by someone else at a normal distance; when the user says the face is not right, ask for
+  those photos first and rewrite the character bible (face shape, hair, glasses) from them before
+  touching the pipeline. Editing the costume portrait directly from two good photos, then swapping
+  the same face onto it, gave the likeness the user accepted.
 - Glasses survive a face swap when the generated portrait already wears them: describe them in
   the character bible and the portrait prompt, and the swap keeps the frames over the new face.
 - A face written from a description is nobody's face. When the user has supplied photographs for a
