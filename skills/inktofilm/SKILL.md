@@ -232,6 +232,12 @@ missing work is paid for.
   swapped face looks uncanny rather than merely wrong, suspect the proportions of the base face
   rather than the swap: a base face narrower than the supplied one stretches the features to fill it.
   Fix it by constraining the base still's face shape and feature spacing, then swap again.
+- For a costume that belongs to a famous character, describe the look ("a fitted red-and-blue
+  spider-themed superhero suit with a black web pattern and a small spider emblem") and never the
+  name: the image and video models then render it without balking, and the film stays a private
+  homage. A mask hides the face the user asked for, so plan the close shots mask-off.
+- Glasses survive a face swap when the generated portrait already wears them: describe them in
+  the character bible and the portrait prompt, and the swap keeps the frames over the new face.
 - A face written from a description is nobody's face. When the user has supplied photographs for a
   character in an earlier film, "her face" means those photographs, in every later film with that
   character, and a portrait generated from words alone will be recognised at once as not hers. Keep
