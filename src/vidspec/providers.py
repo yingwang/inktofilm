@@ -312,8 +312,10 @@ class FalFaceSwapper:
 
     Two model families are understood. `fal-ai/face-swap` takes one face and one base image.
     `easel-ai/advanced-face-swap` takes one or two faces, each with a declared gender, keeps the
-    target's hair by default, and upscales; it is the one to use when two people share a frame,
-    because a single-face model cannot be told which of them to replace.
+    target's hair by default, and upscales. With a single-face model, two faces are still
+    possible: the frame is cut into equal vertical strips, one per face in left-to-right order,
+    each strip is swapped on its own, and the strips are laid back over the frame. The plan's
+    `face_reference` order is therefore the order of the people across the frame.
     """
 
     GENDERS = ("female", "male", "non-binary")
@@ -326,10 +328,12 @@ class FalFaceSwapper:
         genders: Optional[Mapping[Path, str]] = None,
         default_gender: str = "non-binary",
         hair: str = "target_hair",
+        runner: Callable[..., subprocess.CompletedProcess] = subprocess.run,
     ):
         self.model = model
         self._client = client
         self.downloader = downloader
+        self.runner = runner
         self.genders = {Path(key).resolve(): value for key, value in (genders or {}).items()}
         if default_gender not in self.GENDERS:
             raise ProviderError(f"Face gender must be one of {', '.join(self.GENDERS)}")
@@ -364,13 +368,10 @@ class FalFaceSwapper:
                 raise ProviderError(f"Face image does not exist: {face_image}")
         if not base_image.is_file():
             raise ProviderError(f"Base still does not exist: {base_image}")
-        if len(faces) > 1 and not self.is_easel:
-            raise ProviderError(
-                f"{self.model} swaps one face at a time; use easel-ai/advanced-face-swap for "
-                "two faces in one frame"
-            )
         if len(faces) > 2:
             raise ProviderError("At most two faces can be swapped onto one frame")
+        if len(faces) > 1 and not self.is_easel:
+            return self._swap_in_strips(faces, base_image, destination)
         client = _fal_client(self._client)
         arguments: Dict[str, Any]
         if self.is_easel:
@@ -395,6 +396,80 @@ class FalFaceSwapper:
         except Exception as exc:
             raise ProviderError(f"fal face swap failed: {exc}") from exc
         return _write_image(_first_image_url(result), destination, self.downloader)
+
+
+    def _swap_in_strips(self, faces: Sequence[Path], base_image: Path, destination: Path) -> Path:
+        """Swap one face per vertical strip, left to right, with a single-face model.
+
+        A single-face model given a frame with two people either picks one of them or replaces
+        both with the same face. Cutting the frame so each strip holds one person makes the
+        target unambiguous; the strips are then composited back at their original positions.
+        """
+        width, height = _image_size(base_image, self.runner)
+        count = len(faces)
+        strips: list = []
+        for index, face in enumerate(faces):
+            left = width * index // count
+            right = width * (index + 1) // count
+            strip = destination.with_name(f"{destination.stem}-strip{index}{destination.suffix}")
+            _run_ffmpeg(
+                ["-i", str(base_image), "-vf", f"crop={right - left}:{height}:{left}:0",
+                 "-frames:v", "1", "-q:v", "2", "-y", str(strip)],
+                self.runner,
+                "could not cut a strip for the face swap",
+            )
+            swapped = strip.with_name(f"{strip.stem}-swapped{strip.suffix}")
+            self.swap_many([face], strip, swapped)
+            strips.append((left, swapped))
+        inputs = ["-i", str(base_image)]
+        chain = []
+        previous = "0:v"
+        for index, (left, swapped) in enumerate(strips):
+            inputs += ["-i", str(swapped)]
+            label = f"c{index}"
+            chain.append(f"[{previous}][{index + 1}:v]overlay={left}:0[{label}]")
+            previous = label
+        _run_ffmpeg(
+            inputs + ["-filter_complex", ";".join(chain), "-map", f"[{previous}]",
+                      "-frames:v", "1", "-q:v", "2", "-y", str(destination)],
+            self.runner,
+            "could not lay the swapped strips back over the frame",
+        )
+        if not destination.is_file() or destination.stat().st_size == 0:
+            raise ProviderError("the strip face swap produced no image")
+        return destination
+
+
+def _image_size(path: Path, runner: Callable[..., subprocess.CompletedProcess]) -> tuple:
+    ffprobe = shutil.which("ffprobe")
+    if ffprobe is None:
+        raise ProviderError("ffprobe is required to swap faces in strips")
+    completed = runner(
+        [ffprobe, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
+         "-of", "json", str(path)],
+        capture_output=True, text=True, check=False,
+    )
+    try:
+        stream = json.loads(completed.stdout)["streams"][0]
+        return int(stream["width"]), int(stream["height"])
+    except (json.JSONDecodeError, KeyError, IndexError, TypeError, ValueError) as exc:
+        raise ProviderError(f"ffprobe could not read the size of {path.name}") from exc
+
+
+def _run_ffmpeg(
+    arguments: Sequence[str],
+    runner: Callable[..., subprocess.CompletedProcess],
+    failure: str,
+) -> None:
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        raise ProviderError("ffmpeg is required to swap faces in strips")
+    completed = runner(
+        [ffmpeg, "-hide_banner", "-loglevel", "error", *arguments],
+        capture_output=True, text=True, check=False,
+    )
+    if completed.returncode != 0:
+        raise ProviderError(f"{failure}: {(completed.stderr or '').strip()}")
 
 
 class FalMiniMaxGenerator:

@@ -109,8 +109,10 @@ inktofilm produce screenplay.md --plan plan.json \
 
 Use it only where the face is large in frame. On a wide shot the face covers too few pixels for the
 swap to survive downscaling, and the result reads as a deformed face rather than a likeness. When two
-people share the frame, use `easel-ai/advanced-face-swap` with `--face-gender` for each face: a
-single-face model cannot be told which person to replace. The photo goes to the face-swap model and
+people share the frame, list them in `face_reference` in their left-to-right order: with
+`easel-ai/advanced-face-swap` both faces go in one request (declare each with `--face-gender`); with
+a single-face model the frame is cut into two vertical strips, each strip is swapped for its own
+person, and the strips are laid back in place. The photo goes to the face-swap model and
 to nothing else: it is never written into a prompt, never sent to the planner or judge, and never
 copied into the bundle. `--no-stills` skips stills, swaps, continuation frames, and chaining entirely
 and shoots every shot from text alone.

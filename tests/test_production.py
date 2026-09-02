@@ -1046,13 +1046,58 @@ def test_easel_face_swapper_sends_two_faces_with_their_genders(tmp_path, monkeyp
     assert arguments["workflow_type"] == "target_hair"
     assert "private-test-key" not in json.dumps(arguments, default=str)
 
-    # One face without a declared gender is sent as non-binary; the basic model refuses two faces.
+    # One face without a declared gender is sent as non-binary; three faces are refused.
     swapper.swap(base, her, tmp_path / "one.jpg")
     assert captured["arguments"]["gender_0"] == "non-binary"
-    with pytest.raises(ProviderError, match="one face at a time"):
-        FalFaceSwapper(client=FakeClient(), downloader=lambda url: b"").swap_many(
-            [her, him], base, tmp_path / "two.jpg"
-        )
+    with pytest.raises(ProviderError, match="At most two"):
+        swapper.swap_many([her, him, base], base, tmp_path / "three.jpg")
+
+
+def test_single_face_model_swaps_two_faces_in_left_to_right_strips(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    swapped = []
+    commands = []
+
+    class FakeClient:
+        @staticmethod
+        def upload_file(path):
+            return f"https://example.test/{path.name}"
+
+        @staticmethod
+        def subscribe(model, arguments):
+            swapped.append((arguments["swap_image_url"], arguments["base_image_url"]))
+            return {"image": {"url": "https://example.test/swapped.jpg"}}
+
+    def runner(command, **kwargs):
+        commands.append(command)
+        if command[0].endswith("ffprobe"):
+            return subprocess.CompletedProcess(command, 0, '{"streams":[{"width":1344,"height":768}]}', "")
+        output = Path(command[-1])
+        output.write_bytes(b"jpeg")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    monkeypatch.setenv("FAL_KEY", "private-test-key")
+    monkeypatch.setattr("vidspec.providers.shutil.which", lambda name: f"/usr/bin/{name}")
+    her, him, base = tmp_path / "her.jpg", tmp_path / "him.jpg", tmp_path / "frame.jpg"
+    for path in (her, him, base):
+        path.write_bytes(b"x")
+    out = tmp_path / "out.jpg"
+    FalFaceSwapper(client=FakeClient(), downloader=lambda url: b"swapped", runner=runner).swap_many(
+        [him, her], base, out
+    )
+    # The left strip gets the first face and the right strip the second, each swapped alone.
+    assert swapped == [
+        ("https://example.test/him.jpg", "https://example.test/out-strip0.jpg"),
+        ("https://example.test/her.jpg", "https://example.test/out-strip1.jpg"),
+    ]
+    crops = [c[c.index("-vf") + 1] for c in commands if "-vf" in c]
+    assert crops == ["crop=672:768:0:0", "crop=672:768:672:0"]
+    composite = [c for c in commands if "-filter_complex" in c][0]
+    assert composite[composite.index("-filter_complex") + 1] == (
+        "[0:v][1:v]overlay=0:0[c0];[c0][2:v]overlay=672:0[c1]"
+    )
+    assert composite[-1] == str(out) and out.is_file()
 
 
 def test_cli_gender_map_checks_names_and_values(tmp_path):

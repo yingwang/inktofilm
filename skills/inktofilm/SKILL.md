@@ -200,8 +200,17 @@ missing work is paid for.
   the handoff frame, not only on stills: list the characters in `face_reference` on the continued
   shot as well, and design the previous shot to end on a framing where those faces are large
   enough to swap (a tight two-shot, not the wide the fight was staged in). When two people share
-  the frame, use the two-face model with a declared gender per face; a single-face swap cannot be
-  told which of them to replace.
+  the frame, list them in `face_reference` in left-to-right order: the two-face model takes both in
+  one request, and a single-face model is applied strip by strip so it cannot replace the wrong
+  person. Stage two-shots with one person on each side of the frame for the same reason.
+- A hosted face-swap model can sit in its queue for ten minutes and more while every other model
+  answers in seconds. Probe it with a submit-and-poll before a production run, keep the basic
+  single-face model as the fallback, and never let a swap that has not returned block the shots
+  that do not need it.
+- A likeness has two routes and they differ by face. Editing the costume portrait directly from the
+  photographs (nano-banana/edit with the photos as references) keeps a soft, fine-featured face
+  well and can beat a swap for it; a swap is what restores a face the edit has idealised away.
+  Look at both before choosing, per character, and keep the rejected one in `rejected/`.
 - Put a user's own photographed face into a film only where it can survive. Swap it on close and
   tight-medium shots, and leave wide shots to the generated face: below roughly a tight medium the
   face covers too few pixels, and the attempt reads as deformed rather than as a likeness. Ask for

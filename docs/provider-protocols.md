@@ -93,9 +93,11 @@ Two face-swap request shapes are supported. `fal-ai/face-swap` (the default) rec
 `face_image_0`/`gender_0`, optionally `face_image_1`/`gender_1`, `target_image`, `workflow_type`
 (`target_hair`, so the costume hairstyle stays), `upscale` and `detailer`; it is selected with
 `--face-swap-model` and takes each face's gender from `--face-gender CHARACTER_ID=GENDER`
-(`female`, `male`, or `non-binary`; an undeclared face is sent as `non-binary`). A shot whose
-`face_reference` lists two characters needs the easel model, because a single-face model cannot be
-told which person in the frame to replace.
+(`female`, `male`, or `non-binary`; an undeclared face is sent as `non-binary`). When a shot's
+`face_reference` lists two characters and the model swaps one face at a time, InkToFilm cuts the
+frame into two equal vertical strips with FFmpeg, swaps the first character onto the left strip and
+the second onto the right, and lays the strips back over the frame; list the characters in their
+left-to-right order across the frame, and keep both faces clear of the centre line.
 
 Continuation frames (`continue_from_previous`) are cut locally with FFmpeg from the previous shot's
 selected clip and are passed to the video model exactly as a still would be, through `image_url`.
