@@ -88,6 +88,18 @@ the face-swap model and to nothing else. It is never written into a prompt, neve
 planner or the judge, and never copied into the production bundle, so a private photograph does not
 travel with a shared film. InkToFilm rejects a `--face` naming a character the plan does not have.
 
+Two face-swap request shapes are supported. `fal-ai/face-swap` (the default) receives
+`swap_image_url` and `base_image_url` and swaps one face. `easel-ai/advanced-face-swap` receives
+`face_image_0`/`gender_0`, optionally `face_image_1`/`gender_1`, `target_image`, `workflow_type`
+(`target_hair`, so the costume hairstyle stays), `upscale` and `detailer`; it is selected with
+`--face-swap-model` and takes each face's gender from `--face-gender CHARACTER_ID=GENDER`
+(`female`, `male`, or `non-binary`; an undeclared face is sent as `non-binary`). A shot whose
+`face_reference` lists two characters needs the easel model, because a single-face model cannot be
+told which person in the frame to replace.
+
+Continuation frames (`continue_from_previous`) are cut locally with FFmpeg from the previous shot's
+selected clip and are passed to the video model exactly as a still would be, through `image_url`.
+
 ## Judge command
 
 `--judge-command` uses the same request and response contract as `inktofilm run --semantic-command`.

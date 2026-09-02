@@ -8,10 +8,11 @@ import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Protocol, Sequence
+from typing import Any, Callable, Dict, List, Mapping, Optional, Protocol, Sequence
 
 from vidspec.config import CaseSpec, SemanticAssertion, SemanticSpec
 from vidspec.engine import evaluate_case
+from vidspec.media import MediaToolError, extract_frame, probe_video
 from vidspec.models import STATUS_ORDER, CaseReport, RunReport
 from vidspec.production import ProductionError, ProductionPlan, ProductionPlanner, ShotSpec
 from vidspec.providers import (
@@ -46,6 +47,26 @@ class ImageGenerator(Protocol):
 
 class FaceSwapper(Protocol):
     def swap(self, face_image: Path, base_image: Path, destination: Path) -> Path: ...
+
+
+# (video, seconds before its end, destination) -> the written frame
+FrameGrabber = Callable[[Path, float, Path], Path]
+
+
+def grab_frame_before_end(video: Path, seconds_from_end: float, destination: Path) -> Path:
+    """Write the frame `seconds_from_end` before the clip ends, at the clip's own size.
+
+    The literal last frame of a generated clip is often mid-blur or already fading, so callers
+    ask for a frame a fraction of a second earlier; the offset is clamped inside the clip.
+    """
+    try:
+        probe = probe_video(video)
+        fps = probe.fps if probe.fps > 0 else 24.0
+        latest = max(probe.duration_seconds - 1.0 / fps, 0.0)
+        timestamp = min(max(probe.duration_seconds - seconds_from_end, 0.0), latest)
+        return extract_frame(video, timestamp, destination)
+    except MediaToolError as exc:
+        raise ProductionError(f"Could not take a frame from {video.name}: {exc}") from exc
 
 
 class VideoEditor(Protocol):
@@ -211,6 +232,7 @@ class ProductionOrchestrator:
         image_generator: Optional[ImageGenerator] = None,
         face_swapper: Optional[FaceSwapper] = None,
         faces: Optional[Mapping[str, Path]] = None,
+        frame_grabber: Optional[FrameGrabber] = None,
     ):
         self.planner = planner
         self.generator = generator
@@ -219,6 +241,44 @@ class ProductionOrchestrator:
         self.image_generator = image_generator
         self.face_swapper = face_swapper
         self.faces = dict(faces or {})
+        self.frame_grabber = frame_grabber or grab_frame_before_end
+
+    def _swap_faces(self, shot: ShotSpec, base: Path) -> Path:
+        """Put every supplied face the shot asks for onto `base`, reusing a swap already on disk."""
+        faces = [self.faces[name] for name in shot.face_references if name in self.faces]
+        if not faces or self.face_swapper is None:
+            return base
+        swapped = base.with_name(f"{base.stem}-face{base.suffix}")
+        if swapped.is_file():
+            return swapped
+        if len(faces) == 1:
+            self.face_swapper.swap(faces[0], base, swapped)
+        elif hasattr(self.face_swapper, "swap_many"):
+            self.face_swapper.swap_many(faces, base, swapped)
+        else:
+            # A single-face model cannot be told which person to replace, so swapping twice is
+            # the only option left; the second pass may land on the wrong face.
+            current = base
+            for index, face in enumerate(faces):
+                step = swapped if index == len(faces) - 1 else base.with_name(
+                    f"{base.stem}-face{index}{base.suffix}"
+                )
+                self.face_swapper.swap(face, current, step)
+                current = step
+        return swapped
+
+    def _continuation_still(self, shot: ShotSpec, previous_clip: Path, output_dir: Path) -> Path:
+        """Take this shot's opening frame from the previous shot's selected clip.
+
+        The frame is named after the clip it came from, so choosing a different take of the
+        previous shot produces a new frame instead of silently reusing a stale one, and the
+        shot's photographed faces go onto the frame before any video credit is spent on it.
+        """
+        assert shot.continue_from_previous is not None
+        frame = output_dir / "stills" / f"{shot.shot_id}-from-{previous_clip.stem}.jpg"
+        if not frame.is_file():
+            self.frame_grabber(previous_clip, shot.continue_from_previous, frame)
+        return self._swap_faces(shot, frame)
 
     def _reference_stills(self, plan: ProductionPlan, output_dir: Path) -> Dict[str, Path]:
         """Render one clean portrait per character, so every later still edits from one face.
@@ -269,13 +329,7 @@ class ProductionOrchestrator:
                     plan.aspect_ratio,
                     sources,
                 )
-            face = self.faces.get(shot.face_reference) if shot.face_reference else None
-            if face is not None and self.face_swapper is not None:
-                swapped = still.with_name(f"{shot.shot_id}-face.jpg")
-                if not swapped.is_file():
-                    self.face_swapper.swap(face, still, swapped)
-                still = swapped
-            stills[shot.shot_id] = still
+            stills[shot.shot_id] = self._swap_faces(shot, still)
         return stills
 
     @staticmethod
@@ -448,6 +502,15 @@ class ProductionOrchestrator:
                 candidates = (max(existing, 1),)
             else:
                 candidates = range(1, max_retries + 2)
+            if shot.continue_from_previous is not None and any(
+                not (output_dir / "shots" / f"{shot.shot_id}-attempt-{n}.mp4").is_file()
+                for n in candidates
+            ):
+                # Only a shot about to be generated needs its opening frame, so a selected or
+                # already finished take costs no frame grab and no face swap.
+                stills[shot.shot_id] = self._continuation_still(
+                    shot, selected_clips[-1], output_dir
+                )
             for attempt in candidates:
                 prompt = _generation_prompt(plan, shot, feedback)
                 clip_path = output_dir / "shots" / f"{shot.shot_id}-attempt-{attempt}.mp4"
@@ -491,6 +554,9 @@ class ProductionOrchestrator:
             if still is not None:
                 entry["still"] = still.relative_to(output_dir).as_posix()
                 entry["chained_to_next"] = shot.chain_to_next
+            if shot.continue_from_previous is not None:
+                entry["continued_from"] = selected_clips[-2].relative_to(output_dir).as_posix()
+                entry["continue_from_previous"] = shot.continue_from_previous
             manifest["shots"].append(entry)
 
         report = RunReport(
@@ -498,6 +564,10 @@ class ProductionOrchestrator:
             generated_at=datetime.now(timezone.utc).isoformat(),
             cases=cases,
         )
+        if stills:
+            manifest["stills"] = {
+                name: path.relative_to(output_dir).as_posix() for name, path in stills.items()
+            }
         write_json(report, output_dir / "report.json")
         write_html(report, output_dir / "index.html")
         # The suite of selected clips lets a reviewer replay their own verdicts later with

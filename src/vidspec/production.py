@@ -7,7 +7,7 @@ import re
 import shlex
 import subprocess
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Mapping, Protocol, Sequence
+from typing import Any, Dict, List, Mapping, Optional, Protocol, Sequence
 
 from vidspec.providers import CodexCLIProvider
 
@@ -36,6 +36,18 @@ class ShotSpec:
     characters: List[str] = field(default_factory=list)
     face_reference: str = ""
     chain_to_next: bool = False
+    # Seconds before the end of the previous shot's selected clip where this shot's opening
+    # frame is taken. None means the shot opens on its own still or on text alone.
+    continue_from_previous: Optional[float] = None
+    # Every character whose photographed face goes onto this shot's opening frame. Filled from
+    # face_reference when only one is named, so plans written for one face keep working.
+    face_references: List[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if self.face_reference and not self.face_references:
+            self.face_references = [self.face_reference]
+        elif self.face_references and not self.face_reference:
+            self.face_reference = self.face_references[0]
 
 
 @dataclass
@@ -89,8 +101,14 @@ PRODUCTION_PLAN_SCHEMA: Dict[str, Any] = {
                     },
                     "still_prompt": {"type": "string"},
                     "characters": {"type": "array", "items": {"type": "string"}},
-                    "face_reference": {"type": "string"},
+                    "face_reference": {
+                        "anyOf": [
+                            {"type": "string"},
+                            {"type": "array", "items": {"type": "string"}},
+                        ]
+                    },
                     "chain_to_next": {"type": "boolean"},
+                    "continue_from_previous": {"type": ["boolean", "number"]},
                 },
                 "required": [
                     "shot_id",
@@ -103,6 +121,7 @@ PRODUCTION_PLAN_SCHEMA: Dict[str, Any] = {
                     "characters",
                     "face_reference",
                     "chain_to_next",
+                    "continue_from_previous",
                 ],
             },
             "minItems": 1,
@@ -135,9 +154,19 @@ Set chain_to_next when the action runs straight on into the next shot with no cu
 still becomes this shot's mandated last frame. Both shots need a still for this. Leave it false
 across a real cut: the two shots then simply share the same location and lighting description.
 
-Set face_reference to a character_id only where that character's face is large in frame, roughly a
-close-up or a tight medium. On a wide shot the face covers too few pixels to swap cleanly and the
-result reads as deformed. Leave it empty everywhere else.
+Set continue_from_previous when this shot should open on a frame taken from the previous shot's
+finished clip instead of on a still of its own: true takes a frame 0.4 seconds before the end, a
+number takes a frame that many seconds before the end. This is how consecutive shots keep the same
+people, costume, light and place without a cut that resets them. It cannot be combined with
+still_prompt, the first shot cannot use it, and a shot that continues cannot be the end frame of a
+chain_to_next. Front-load the action in a continued shot, because the model otherwise spends its
+first seconds holding the opening frame.
+
+Set face_reference to the character_ids whose photographed faces belong on this shot's opening frame,
+as a string for one character or an array for two, only where those faces are large in frame,
+roughly a close-up or a tight medium. On a wide shot the face covers too few pixels to swap cleanly
+and the result reads as deformed. Leave it empty everywhere else. It works on a still_prompt and on
+a continue_from_previous frame alike.
 
 Return only the structured JSON requested by the schema.
 
@@ -162,6 +191,50 @@ def _optional_text(raw: Mapping[str, Any], key: str, context: str) -> str:
     if not isinstance(value, str):
         raise ProductionError(f"{context} {key} must be a string")
     return value.strip()
+
+
+DEFAULT_CONTINUATION_OFFSET = 0.4
+
+
+def _face_references(raw: Mapping[str, Any], character_ids: set, shot_id: str) -> List[str]:
+    """Read face_reference as one character_id or a list of them."""
+    value = raw.get("face_reference", "")
+    if value is None or value == "":
+        return []
+    if isinstance(value, str):
+        values = [value]
+    elif isinstance(value, list) and all(isinstance(item, str) for item in value):
+        values = value
+    else:
+        raise ProductionError(f"Shot '{shot_id}' face_reference must be a string or a list of strings")
+    references: List[str] = []
+    for item in values:
+        if not item.strip():
+            continue
+        character_id = safe_id(item)
+        if character_id not in character_ids:
+            raise ProductionError(
+                f"Shot '{shot_id}' face_reference '{character_id}' is not in the cast"
+            )
+        if character_id not in references:
+            references.append(character_id)
+    return references
+
+
+def _continuation(raw: Mapping[str, Any], shot_id: str) -> Optional[float]:
+    """Read continue_from_previous: false or absent means no, true means the default offset."""
+    value = raw.get("continue_from_previous", False)
+    if value is None or value is False:
+        return None
+    if value is True:
+        return DEFAULT_CONTINUATION_OFFSET
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if value < 0:
+            raise ProductionError(f"Shot '{shot_id}' continue_from_previous cannot be negative")
+        return float(value)
+    raise ProductionError(
+        f"Shot '{shot_id}' continue_from_previous must be true, false, or seconds before the end"
+    )
 
 
 def parse_plan(raw: Mapping[str, Any]) -> ProductionPlan:
@@ -222,18 +295,29 @@ def parse_plan(raw: Mapping[str, Any]) -> ProductionPlan:
             raise ProductionError(
                 f"Shot '{shot_id}' names characters that are not in the cast: {', '.join(unknown)}"
             )
-        face_reference = _optional_text(item, "face_reference", f"Shot '{shot_id}'")
-        if face_reference:
-            face_reference = safe_id(face_reference)
-            if face_reference not in character_ids:
-                raise ProductionError(
-                    f"Shot '{shot_id}' face_reference '{face_reference}' is not in the cast"
-                )
+        face_references = _face_references(item, character_ids, shot_id)
         chain_to_next = item.get("chain_to_next", False)
         if not isinstance(chain_to_next, bool):
             raise ProductionError(f"Shot '{shot_id}' chain_to_next must be true or false")
+        continue_from_previous = _continuation(item, shot_id)
         still_prompt = _optional_text(item, "still_prompt", f"Shot '{shot_id}'")
-        if face_reference and not still_prompt:
+        if continue_from_previous is not None:
+            if index == 0:
+                raise ProductionError(
+                    f"Shot '{shot_id}' is the first shot, so there is no previous clip to continue"
+                )
+            if still_prompt:
+                raise ProductionError(
+                    f"Shot '{shot_id}' cannot both continue from the previous clip and open on "
+                    "its own still"
+                )
+            previous_duration = shots[-1].duration_seconds
+            if continue_from_previous >= previous_duration:
+                raise ProductionError(
+                    f"Shot '{shot_id}' continue_from_previous must be less than the previous "
+                    f"shot's {previous_duration} seconds"
+                )
+        if face_references and not still_prompt and continue_from_previous is None:
             raise ProductionError(
                 f"Shot '{shot_id}' asks for a face swap but has no still to swap onto"
             )
@@ -247,8 +331,9 @@ def parse_plan(raw: Mapping[str, Any]) -> ProductionPlan:
                 assertions=assertions,
                 still_prompt=still_prompt,
                 characters=cast,
-                face_reference=face_reference,
+                face_references=face_references,
                 chain_to_next=chain_to_next,
+                continue_from_previous=continue_from_previous,
             )
         )
         seen.add(shot_id)
@@ -259,6 +344,11 @@ def parse_plan(raw: Mapping[str, Any]) -> ProductionPlan:
         following = shots[position + 1] if position + 1 < len(shots) else None
         if following is None:
             raise ProductionError(f"Shot '{shot.shot_id}' chains to next but is the last shot")
+        if following.continue_from_previous is not None:
+            raise ProductionError(
+                f"Shot '{shot.shot_id}' chains to next, but '{following.shot_id}' continues from "
+                "it instead of supplying an end frame; use one or the other"
+            )
         if not shot.still_prompt or not following.still_prompt:
             raise ProductionError(
                 f"Shot '{shot.shot_id}' chains to next, so both it and '{following.shot_id}' "

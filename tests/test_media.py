@@ -56,3 +56,34 @@ def test_temporal_detector_parsing(monkeypatch, tmp_path):
         (2.0, 3.0),
         (4.0, 6.0),
     ]
+
+
+def test_extract_frame_seeks_to_the_timestamp_and_keeps_full_size(monkeypatch, tmp_path):
+    video = tmp_path / "clip.mp4"
+    video.write_bytes(b"video")
+    destination = tmp_path / "stills" / "frame.jpg"
+    commands = []
+
+    def runner(command, **kwargs):
+        commands.append(command)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(b"jpeg")
+        return completed()
+
+    monkeypatch.setattr(media, "require_tool", lambda name: name)
+    assert media.extract_frame(video, 4.6, destination, runner) == destination
+    (command,) = commands
+    assert command[command.index("-ss") + 1] == "4.600000"
+    assert command[command.index("-frames:v") + 1] == "1"
+    assert "-vf" not in command
+    assert command[-1] == str(destination)
+
+    def failing(command, **kwargs):
+        return completed(stderr="boom", returncode=1)
+
+    try:
+        media.extract_frame(video, 1.0, tmp_path / "missing.jpg", failing)
+    except media.MediaToolError as exc:
+        assert "boom" in str(exc)
+    else:
+        raise AssertionError("a failed ffmpeg run must raise")

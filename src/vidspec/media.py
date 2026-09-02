@@ -162,6 +162,43 @@ def detect_freezes(
     return intervals
 
 
+def extract_frame(
+    path: Path,
+    timestamp_seconds: float,
+    destination: Path,
+    runner: Runner = subprocess.run,
+) -> Path:
+    """Write the frame at `timestamp_seconds` as a full-resolution JPEG.
+
+    Used to hand one shot's late frame to the next shot as its opening image, so the frame is
+    kept at the clip's own size rather than the reduced size the judge samples at.
+    """
+    ffmpeg = require_tool("ffmpeg")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    command = [
+        ffmpeg,
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-ss",
+        f"{max(timestamp_seconds, 0.0):.6f}",
+        "-i",
+        str(path),
+        "-frames:v",
+        "1",
+        "-q:v",
+        "2",
+        "-y",
+        str(destination),
+    ]
+    completed = runner(command, capture_output=True, text=True, check=False)
+    if completed.returncode != 0 or not destination.is_file():
+        raise MediaToolError(
+            (completed.stderr or "").strip() or "ffmpeg did not write the requested frame"
+        )
+    return destination
+
+
 def subprocess_runner(command: Sequence[str], **kwargs: object) -> subprocess.CompletedProcess:
     """Public seam for integrations that need to wrap process execution."""
     return subprocess.run(command, **kwargs)  # type: ignore[arg-type]

@@ -305,34 +305,91 @@ class FalImageGenerator:
 
 
 class FalFaceSwapper:
-    """Put a supplied face onto a generated still through the user's fal account.
+    """Put supplied faces onto a generated still through the user's fal account.
 
-    Worth doing only where the face is large in frame. On a wide shot the face covers too
-    few pixels for the swap to survive, and the attempt usually reads as a deformed face.
+    Worth doing only where the face is large in frame. On a wide shot the face covers too few
+    pixels for the swap to survive, and the attempt usually reads as a deformed face.
+
+    Two model families are understood. `fal-ai/face-swap` takes one face and one base image.
+    `easel-ai/advanced-face-swap` takes one or two faces, each with a declared gender, keeps the
+    target's hair by default, and upscales; it is the one to use when two people share a frame,
+    because a single-face model cannot be told which of them to replace.
     """
+
+    GENDERS = ("female", "male", "non-binary")
 
     def __init__(
         self,
         model: str = "fal-ai/face-swap",
         client: Any = None,
         downloader: Download = _download,
+        genders: Optional[Mapping[Path, str]] = None,
+        default_gender: str = "non-binary",
+        hair: str = "target_hair",
     ):
         self.model = model
         self._client = client
         self.downloader = downloader
+        self.genders = {Path(key).resolve(): value for key, value in (genders or {}).items()}
+        if default_gender not in self.GENDERS:
+            raise ProviderError(f"Face gender must be one of {', '.join(self.GENDERS)}")
+        self.default_gender = default_gender
+        if hair not in ("target_hair", "user_hair"):
+            raise ProviderError("Face swap hair mode must be target_hair or user_hair")
+        self.hair = hair
+
+    @property
+    def is_easel(self) -> bool:
+        return self.model.startswith("easel-ai/")
+
+    def _gender(self, face_image: Path) -> str:
+        return self.genders.get(face_image.resolve(), self.default_gender)
 
     def swap(self, face_image: Path, base_image: Path, destination: Path) -> Path:
+        return self.swap_many([face_image], base_image, destination)
+
+    def swap_many(
+        self,
+        face_images: Sequence[Path],
+        base_image: Path,
+        destination: Path,
+    ) -> Path:
         if not os.environ.get("FAL_KEY"):
             raise ProviderError("FAL_KEY is required for the fal face-swap provider")
-        if not face_image.is_file():
-            raise ProviderError(f"Face image does not exist: {face_image}")
+        faces = list(face_images)
+        if not faces:
+            raise ProviderError("A face swap needs at least one face image")
+        for face_image in faces:
+            if not face_image.is_file():
+                raise ProviderError(f"Face image does not exist: {face_image}")
         if not base_image.is_file():
             raise ProviderError(f"Base still does not exist: {base_image}")
+        if len(faces) > 1 and not self.is_easel:
+            raise ProviderError(
+                f"{self.model} swaps one face at a time; use easel-ai/advanced-face-swap for "
+                "two faces in one frame"
+            )
+        if len(faces) > 2:
+            raise ProviderError("At most two faces can be swapped onto one frame")
         client = _fal_client(self._client)
-        arguments = {
-            "swap_image_url": client.upload_file(face_image),
-            "base_image_url": client.upload_file(base_image),
-        }
+        arguments: Dict[str, Any]
+        if self.is_easel:
+            arguments = {
+                "face_image_0": client.upload_file(faces[0]),
+                "gender_0": self._gender(faces[0]),
+                "target_image": client.upload_file(base_image),
+                "workflow_type": self.hair,
+                "upscale": True,
+                "detailer": True,
+            }
+            if len(faces) == 2:
+                arguments["face_image_1"] = client.upload_file(faces[1])
+                arguments["gender_1"] = self._gender(faces[1])
+        else:
+            arguments = {
+                "swap_image_url": client.upload_file(faces[0]),
+                "base_image_url": client.upload_file(base_image),
+            }
         try:
             result = client.subscribe(self.model, arguments=arguments)
         except Exception as exc:

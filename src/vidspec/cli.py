@@ -9,7 +9,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Mapping, Optional
 
 from vidspec import __version__
 from vidspec.compare import ComparisonError, compare_report_files, output_paths, write_comparison
@@ -246,7 +246,19 @@ def _parser() -> argparse.ArgumentParser:
     produce.add_argument(
         "--face-swap-model",
         default="fal-ai/face-swap",
-        help="fal model endpoint used by --face",
+        help=(
+            "fal model endpoint used by --face; easel-ai/advanced-face-swap swaps two faces "
+            "in one frame and needs --face-gender"
+        ),
+    )
+    produce.add_argument(
+        "--face-gender",
+        action="append",
+        metavar="CHARACTER_ID=GENDER",
+        help=(
+            "declare a photographed face's gender (female, male, non-binary) for face-swap "
+            "models that ask for it; repeat per character"
+        ),
     )
     produce.add_argument(
         "--face",
@@ -274,6 +286,24 @@ def _face_map(values: Optional[List[str]]) -> Dict[str, Path]:
             raise ProductionError(f"--face photo does not exist: {path}")
         faces[safe_id(character_id.strip())] = path
     return faces
+
+
+def _gender_map(values: Optional[List[str]], faces: Mapping[str, Path]) -> Dict[Path, str]:
+    genders: Dict[Path, str] = {}
+    for value in values or []:
+        if "=" not in value:
+            raise ProductionError(f"--face-gender expects CHARACTER_ID=GENDER, got '{value}'")
+        character_id, gender = value.split("=", 1)
+        character_id = safe_id(character_id.strip())
+        gender = gender.strip().lower()
+        if gender not in FalFaceSwapper.GENDERS:
+            raise ProductionError(
+                f"--face-gender must be one of {', '.join(FalFaceSwapper.GENDERS)}, got '{gender}'"
+            )
+        if character_id not in faces:
+            raise ProductionError(f"--face-gender names {character_id}, which has no --face")
+        genders[faces[character_id]] = gender
+    return genders
 
 
 def _selection_map(values: Optional[List[str]]) -> Dict[str, int]:
@@ -430,7 +460,10 @@ def _run(args: argparse.Namespace) -> int:
                     model=args.image_model,
                     edit_model=args.image_edit_model,
                 )
-                face_swapper = FalFaceSwapper(model=args.face_swap_model)
+                face_swapper = FalFaceSwapper(
+                    model=args.face_swap_model,
+                    genders=_gender_map(args.face_gender, faces),
+                )
         if faces and args.no_stills:
             raise ProductionError("--face needs stills, so it cannot be used with --no-stills")
         result = ProductionOrchestrator(

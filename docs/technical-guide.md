@@ -87,18 +87,33 @@ The plan decides these per shot, and the manifest records what each shot actuall
 - `chain_to_next` hands the following shot's still to the video model as this shot's mandated last
   frame, so two clips meet on the same image rather than merely resembling each other. Both shots
   need a still, and the last shot cannot chain.
-- `face_reference` names the character whose photographed face should be swapped onto this shot's
-  still. Supply the photo at the command line, never in the plan:
+- `continue_from_previous` opens this shot on a frame taken from the previous shot's selected clip
+  instead of on a still of its own: `true` takes the frame 0.4 seconds before the clip ends, a number
+  takes it that many seconds before the end (a mid-clip frame is a number around half the previous
+  duration). The frame is written to `stills/<shot>-from-<previous clip>.jpg` at the clip's own size,
+  so selecting or reshooting the previous take produces a fresh frame rather than reusing a stale
+  one, and the manifest records `continued_from`. A continued shot cannot also have a `still_prompt`,
+  the first shot cannot continue, and a shot that continues cannot be the end frame of a
+  `chain_to_next`. Nothing is grabbed or swapped for a shot whose attempts already exist.
+- `face_reference` names the character, or a two-item list of characters, whose photographed faces
+  are swapped onto this shot's opening frame, whether that frame is a still or a continuation frame.
+  Supply the photos at the command line, never in the plan:
 
 ```bash
 inktofilm produce screenplay.md --face traveler=~/photos/her.jpg -o productions/my-film
+inktofilm produce screenplay.md --plan plan.json \
+  --face heroine=~/photos/her.jpg --face hero=~/photos/him.jpg \
+  --face-gender heroine=female --face-gender hero=male \
+  --face-swap-model easel-ai/advanced-face-swap -o productions/my-film
 ```
 
 Use it only where the face is large in frame. On a wide shot the face covers too few pixels for the
-swap to survive downscaling, and the result reads as a deformed face rather than a likeness. The
-photo goes to the face-swap model and to nothing else: it is never written into a prompt, never sent
-to the planner or judge, and never copied into the bundle. `--no-stills` skips stills, swaps, and
-chaining entirely and shoots every shot from text alone.
+swap to survive downscaling, and the result reads as a deformed face rather than a likeness. When two
+people share the frame, use `easel-ai/advanced-face-swap` with `--face-gender` for each face: a
+single-face model cannot be told which person to replace. The photo goes to the face-swap model and
+to nothing else: it is never written into a prompt, never sent to the planner or judge, and never
+copied into the bundle. `--no-stills` skips stills, swaps, continuation frames, and chaining entirely
+and shoots every shot from text alone.
 
 ## Bring your own models
 

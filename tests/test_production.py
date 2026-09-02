@@ -810,3 +810,259 @@ def test_unjudged_rerun_keeps_the_newest_take_from_an_earlier_reshoot(tmp_path, 
     manifest = json.loads(result.manifest.read_text(encoding="utf-8"))
     assert manifest["shots"][1]["selected_video"] == "shots/greeting-attempt-2.mp4"
     assert result.final_video.read_bytes() == b"film:arrival-attempt-1.mp4,greeting-attempt-2.mp4"
+
+
+def test_parse_plan_reads_continuation_and_two_faces():
+    raw = _raw_plan()
+    raw["characters"].append(
+        {"character_id": "guard", "name": "Guard", "description": "a guard in white"}
+    )
+    raw["shots"].append(
+        {
+            "shot_id": "banter",
+            "scene": "temple gate at night",
+            "duration_seconds": 6,
+            "prompt": "They talk.",
+            "dialogue": "",
+            "assertions": ["Two people talk"],
+            "continue_from_previous": True,
+            "face_reference": ["traveler", "guard", "traveler"],
+        }
+    )
+    raw["shots"].append(
+        {
+            "shot_id": "draw",
+            "scene": "temple gate at night",
+            "duration_seconds": 5,
+            "prompt": "She draws.",
+            "dialogue": "",
+            "assertions": ["A blade is drawn"],
+            "continue_from_previous": 2.5,
+        }
+    )
+    plan = parse_plan(raw)
+    assert plan.shots[0].continue_from_previous is None
+    assert plan.shots[1].continue_from_previous == 0.4
+    assert plan.shots[1].face_references == ["traveler", "guard"]
+    assert plan.shots[1].face_reference == "traveler"
+    assert plan.shots[2].continue_from_previous == 2.5
+    assert plan.shots[2].face_references == []
+    # A single string keeps working and is mirrored into the list.
+    single = ShotSpec("s", "scene", 5, "p", "", ["a"], still_prompt="x", face_reference="traveler")
+    assert single.face_references == ["traveler"]
+
+
+def test_parse_plan_rejects_impossible_continuations():
+    raw = _raw_plan()
+    raw["shots"][0]["continue_from_previous"] = True
+    with pytest.raises(ProductionError, match="first shot"):
+        parse_plan(raw)
+
+    raw = _raw_plan()
+    raw["shots"].append(dict(raw["shots"][0], shot_id="second", continue_from_previous=True))
+    raw["shots"][1]["still_prompt"] = "a still"
+    with pytest.raises(ProductionError, match="cannot both continue"):
+        parse_plan(raw)
+
+    raw = _raw_plan()
+    raw["shots"].append(dict(raw["shots"][0], shot_id="second", continue_from_previous=5))
+    with pytest.raises(ProductionError, match="less than the previous"):
+        parse_plan(raw)
+
+    raw = _raw_plan()
+    raw["shots"].append(dict(raw["shots"][0], shot_id="second", continue_from_previous="late"))
+    with pytest.raises(ProductionError, match="true, false, or seconds"):
+        parse_plan(raw)
+
+    raw = _raw_plan()
+    raw["shots"][0]["still_prompt"] = "a still"
+    raw["shots"][0]["chain_to_next"] = True
+    raw["shots"].append(dict(raw["shots"][0], shot_id="second", still_prompt="", chain_to_next=False))
+    raw["shots"][1]["continue_from_previous"] = True
+    with pytest.raises(ProductionError, match="use one or the other"):
+        parse_plan(raw)
+
+    raw = _raw_plan()
+    raw["shots"][0]["face_reference"] = ["traveler", 3]
+    with pytest.raises(ProductionError, match="string or a list"):
+        parse_plan(raw)
+
+
+def test_orchestrator_continues_from_the_previous_take_and_swaps_faces_on_the_frame(tmp_path, monkeypatch):
+    plan = ProductionPlan(
+        title="Rooftop",
+        visual_style="cinematic",
+        aspect_ratio="16:9",
+        characters=[
+            CharacterSpec("heroine", "Heroine", "crimson robe"),
+            CharacterSpec("hero", "Hero", "white robe"),
+        ],
+        shots=[
+            ShotSpec("ridge", "roof", 5, "She lands", "", ["She lands"], characters=["heroine"]),
+            ShotSpec(
+                "banter",
+                "roof",
+                6,
+                "They talk",
+                "",
+                ["They talk"],
+                characters=["heroine", "hero"],
+                continue_from_previous=0.4,
+                face_references=["heroine", "hero"],
+            ),
+            ShotSpec(
+                "draw",
+                "roof",
+                5,
+                "She draws",
+                "",
+                ["A blade"],
+                characters=["heroine", "hero"],
+                continue_from_previous=2.0,
+            ),
+        ],
+    )
+    grabbed, shoots, swaps = [], [], []
+
+    def grabber(video, seconds_from_end, destination):
+        grabbed.append((video.name, seconds_from_end, destination.name))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(b"frame")
+        return destination
+
+    class Swapper:
+        @staticmethod
+        def swap(face_image, base_image, destination):
+            raise AssertionError("two faces must go through swap_many")
+
+        @staticmethod
+        def swap_many(face_images, base_image, destination):
+            swaps.append(([face.name for face in face_images], base_image.name))
+            destination.write_bytes(b"swapped")
+            return destination
+
+    class Generator:
+        @staticmethod
+        def generate(prompt, duration_seconds, aspect_ratio, destination):
+            shoots.append((destination.name, None))
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(b"video")
+            return destination
+
+        @staticmethod
+        def generate_from_image(prompt, duration_seconds, start_image, destination, end_image=None):
+            shoots.append((destination.name, start_image.name))
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(b"video")
+            return destination
+
+    def fake_evaluate(spec, base_dir, **kwargs):
+        return CaseReport(spec.case_id, spec.video, spec.prompt, None, [])
+
+    monkeypatch.setattr("vidspec.produce.evaluate_case", fake_evaluate)
+    her = tmp_path / "her.jpg"
+    him = tmp_path / "him.jpg"
+    her.write_bytes(b"her")
+    him.write_bytes(b"him")
+    output = tmp_path / "production"
+
+    def run(**kwargs):
+        return ProductionOrchestrator(
+            planner=None,
+            generator=Generator(),
+            evaluator=None,
+            editor=_Editor(),
+            image_generator=_Images(),
+            face_swapper=Swapper(),
+            faces={"heroine": her, "hero": him},
+            frame_grabber=grabber,
+        ).produce("script", output, plan=plan, unjudged=True, max_retries=0, **kwargs)
+
+    result = run()
+    # The first shot is text-to-video; each later shot opens on a frame cut from the take before it,
+    # named after that take, and both photographed faces land on the dialogue frame only.
+    assert shoots == [
+        ("ridge-attempt-1.mp4", None),
+        ("banter-attempt-1.mp4", "banter-from-ridge-attempt-1-face.jpg"),
+        ("draw-attempt-1.mp4", "draw-from-banter-attempt-1.jpg"),
+    ]
+    assert grabbed == [
+        ("ridge-attempt-1.mp4", 0.4, "banter-from-ridge-attempt-1.jpg"),
+        ("banter-attempt-1.mp4", 2.0, "draw-from-banter-attempt-1.jpg"),
+    ]
+    assert swaps == [(["her.jpg", "him.jpg"], "banter-from-ridge-attempt-1.jpg")]
+    manifest = json.loads(result.manifest.read_text(encoding="utf-8"))
+    assert manifest["shots"][1]["continued_from"] == "shots/ridge-attempt-1.mp4"
+    assert manifest["shots"][1]["still"] == "stills/banter-from-ridge-attempt-1-face.jpg"
+    assert manifest["stills"]["draw"] == "stills/draw-from-banter-attempt-1.jpg"
+
+    # Reshooting the middle shot grabs from the same first take, but the last shot then continues
+    # from the new middle take, because its opening frame follows the selected clip.
+    grabbed.clear()
+    shoots.clear()
+    swaps.clear()
+    run(reshoot=["banter"])
+    assert shoots == [("banter-attempt-2.mp4", "banter-from-ridge-attempt-1-face.jpg")]
+    assert grabbed == [] and swaps == []
+    grabbed.clear()
+    shoots.clear()
+    run(reshoot=["draw"])
+    assert grabbed == [("banter-attempt-2.mp4", 2.0, "draw-from-banter-attempt-2.jpg")]
+    assert shoots == [("draw-attempt-2.mp4", "draw-from-banter-attempt-2.jpg")]
+
+
+def test_easel_face_swapper_sends_two_faces_with_their_genders(tmp_path, monkeypatch):
+    captured = {}
+
+    class FakeClient:
+        @staticmethod
+        def upload_file(path):
+            return f"https://example.test/{path.name}"
+
+        @staticmethod
+        def subscribe(model, arguments):
+            captured["model"] = model
+            captured["arguments"] = arguments
+            return {"image": {"url": "https://example.test/swapped.jpg"}}
+
+    monkeypatch.setenv("FAL_KEY", "private-test-key")
+    her = tmp_path / "her.jpg"
+    him = tmp_path / "him.jpg"
+    base = tmp_path / "frame.jpg"
+    for path in (her, him, base):
+        path.write_bytes(b"x")
+    swapper = FalFaceSwapper(
+        model="easel-ai/advanced-face-swap",
+        client=FakeClient(),
+        downloader=lambda url: b"swapped-bytes",
+        genders={her: "female", him: "male"},
+    )
+    swapper.swap_many([her, him], base, tmp_path / "out.jpg")
+    arguments = captured["arguments"]
+    assert captured["model"] == "easel-ai/advanced-face-swap"
+    assert arguments["face_image_0"].endswith("her.jpg") and arguments["gender_0"] == "female"
+    assert arguments["face_image_1"].endswith("him.jpg") and arguments["gender_1"] == "male"
+    assert arguments["target_image"].endswith("frame.jpg")
+    assert arguments["workflow_type"] == "target_hair"
+    assert "private-test-key" not in json.dumps(arguments, default=str)
+
+    # One face without a declared gender is sent as non-binary; the basic model refuses two faces.
+    swapper.swap(base, her, tmp_path / "one.jpg")
+    assert captured["arguments"]["gender_0"] == "non-binary"
+    with pytest.raises(ProviderError, match="one face at a time"):
+        FalFaceSwapper(client=FakeClient(), downloader=lambda url: b"").swap_many(
+            [her, him], base, tmp_path / "two.jpg"
+        )
+
+
+def test_cli_gender_map_checks_names_and_values(tmp_path):
+    from vidspec.cli import _gender_map
+
+    her = tmp_path / "her.jpg"
+    assert _gender_map(["heroine=Female"], {"heroine": her}) == {her: "female"}
+    with pytest.raises(ProductionError, match="one of"):
+        _gender_map(["heroine=woman"], {"heroine": her})
+    with pytest.raises(ProductionError, match="has no --face"):
+        _gender_map(["hero=male"], {"heroine": her})
+    with pytest.raises(ProductionError, match="CHARACTER_ID=GENDER"):
+        _gender_map(["heroine"], {"heroine": her})

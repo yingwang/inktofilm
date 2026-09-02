@@ -140,6 +140,22 @@ missing work is paid for.
 - Give every action a clock: "within the first half second", "at the midpoint", "in the final
   second". Untimed action either never arrives or is spent on a wind-up, and a shot with no timed
   beat comes back as a slow push-in on people holding a pose.
+- Never write "slow motion" or "elegant, unhurried" into `visual_style` for a film with a fight in
+  it: the style is restated on every shot, so every exchange arrives floating and the fight has no
+  rhythm. Say "real-time speed" in the style, and build tempo inside the fight prompts: count the
+  exchanges ("three cuts and three parries in the first two seconds"), name the stop ("blades lock,
+  one held beat"), then the release ("she breaks the lock and the next flurry is faster"), and let a
+  speed ramp exist only at one impact. Contrast is what reads as rhythm; uniform grace reads as slow.
+- A downward exit reads as a fall. A figure who "steps off the eave and drops into the mist" is
+  seen by a viewer as someone jumping off a building, however light the prompt makes it. End a
+  rooftop scene on the roof (a toast, a sheathed sword, a look), or take the descent in a shot of
+  its own with a visible landing that carries weight.
+- Dialogue that survives a viewer is drama dialogue, not aphorism. Two symmetrical epigrams
+  ("the frost is cold, the wine is not") sound written; a plain exchange with a turn in it sounds
+  spoken. When the user names a scene they love, borrow that scene's logic of exchange (a rule
+  stated, a loophole claimed, a curt order, a cheeky refusal) and put it in your own characters'
+  mouths in their own register, then keep each line short enough to be said in the seconds you gave
+  it.
 - Choose text-to-video for wide, landscape, action and scale shots. The model owns the motion and the
   clip reads as filmed. Reserve image-to-video for shots whose face or exact composition must match a
   still, and front-load the action there too. A polished still is a liability for motion: the tidier
@@ -172,11 +188,20 @@ missing work is paid for.
   from its own still. Framing, costume, and light are cheap to correct in an image and expensive to
   correct in a clip, and a still that is reused as a neighbour's end frame makes a re-shoot local.
 - Choose continuity method shot by shot. When action directly continues, hand the next shot's still
-  to the generator as this shot's mandated last frame, so the two clips meet on one image; failing
-  that, seed the next shot from a stable frame near the end of the previous clip rather than blindly
-  using the literal final frame. Use a clean character reference when only identity must persist, and
-  keep text-to-video freedom for a new location, scale, time, or composition. Do not chain every shot
-  through its predecessor.
+  to the generator as this shot's mandated last frame (`chain_to_next`), so the two clips meet on one
+  image; or open the next shot on a frame cut from the previous take (`continue_from_previous`:
+  `true` for 0.4 seconds before the end, a number for that many seconds before the end), which is
+  what keeps two people, their costumes, the light and the place identical across a sequence that
+  has no stills of its own. Use a clean character reference when only identity must persist, and
+  keep text-to-video freedom for a new location, scale, time, or composition. A user who has seen
+  a chained film will notice when the next one is "all separate pieces"; when they ask for the
+  shots to connect, continue every shot inside a scene and cut only between scenes.
+- A continued shot inherits the previous take's faces, so a photographed likeness has to be put on
+  the handoff frame, not only on stills: list the characters in `face_reference` on the continued
+  shot as well, and design the previous shot to end on a framing where those faces are large
+  enough to swap (a tight two-shot, not the wide the fight was staged in). When two people share
+  the frame, use the two-face model with a declared gender per face; a single-face swap cannot be
+  told which of them to replace.
 - Put a user's own photographed face into a film only where it can survive. Swap it on close and
   tight-medium shots, and leave wide shots to the generated face: below roughly a tight medium the
   face covers too few pixels, and the attempt reads as deformed rather than as a likeness. Ask for
@@ -184,6 +209,10 @@ missing work is paid for.
   swapped face looks uncanny rather than merely wrong, suspect the proportions of the base face
   rather than the swap: a base face narrower than the supplied one stretches the features to fill it.
   Fix it by constraining the base still's face shape and feature spacing, then swap again.
+- A face written from a description is nobody's face. When the user has supplied photographs for a
+  character in an earlier film, "her face" means those photographs, in every later film with that
+  character, and a portrait generated from words alone will be recognised at once as not hers. Keep
+  the photographs where the next production can find them and reuse them without being asked.
 - Generate the planned shots. For every shot, run media checks and evidence-backed semantic checks
   derived from the screenplay, including required characters, setting, action, camera intent, text,
   and visible defects.
