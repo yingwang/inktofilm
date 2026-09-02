@@ -47,7 +47,7 @@ to the bundle.
 
 ### Staged and resumable production
 
-The bundle is resumable: a portrait, still, or shot attempt that already exists in the output
+The bundle records the parsed plan as `plan.json` and the screenplay as `script.md`, overwriting files of those names in the output directory, so keep an authored plan elsewhere or read the written copy back before editing it. The bundle is resumable: a portrait, still, or shot attempt that already exists in the output
 directory is reused, so the same command can be run again after a review and only the missing work
 is generated. Four flags turn that into a workflow an agent can drive one stage at a time:
 

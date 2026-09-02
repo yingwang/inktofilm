@@ -213,6 +213,10 @@ missing work is paid for.
   the frame, list them in `face_reference` in left-to-right order: the two-face model takes both in
   one request, and a single-face model is applied strip by strip so it cannot replace the wrong
   person. Stage two-shots with one person on each side of the frame for the same reason.
+- `produce` writes the parsed plan back into the bundle as `plan.json`. Keep the plan you author
+  outside the output directory, or diff the written copy after every run before editing it again:
+  a field the writer serialises differently from the way the parser reads it changes the film
+  silently on the next run, and the take that came out wrong is the only evidence.
 - A hosted face-swap model can sit in its queue for ten minutes and more while every other model
   answers in seconds. Probe it with a submit-and-poll before a production run, keep the basic
   single-face model as the fallback, and never let a swap that has not returned block the shots
