@@ -139,3 +139,43 @@ reason each of its short rules exists.
   character in an earlier film, "her face" means those photographs, in every later film with that
   character, and a portrait generated from words alone will be recognised at once as not hers. Keep
   the photographs where the next production can find them and reuse them without being asked.
+
+## Screens, broadcasts and readable text
+
+- A television inside the shot is best built as a still first. `nano-banana/edit` with the room
+  frame as the first reference and a photograph as the second, and a prompt that begins "keep this
+  photograph exactly as it is, change only what is on the television screen", returns the same
+  room with a new broadcast on the set: studio, presenter, logo, lower third, and the supplied
+  photograph inset. The video model then keeps that picture steady and lip-syncs the presenter to
+  the quoted line. Spelling on the graphics fails about half the time ("SMEDEN", "BRSAKING", a
+  channel number off by two), so request two takes, crop the screen region and enlarge it before
+  choosing, and re-run rather than accept a misspelt strap.
+- One video shot can carry two channel changes. Give the start frame with channel A on the set and
+  the end frame with channel B, quote both presenters' lines with their own clocks, and put the
+  press of the remote at the switch; the model flips the picture on the press and keeps both
+  broadcasts stable. Cutting to a face between such shots is what lets the next shot start on a
+  different channel without a visible switch.
+- The still editor rarely moves the camera when told to keep everything else. "Rebuild from a new
+  camera position" with a long "keep the same" clause came back at the same angle; the same
+  request that rebuilt the whole composition (a low view from a counter with new foreground props)
+  succeeded. For a second, tighter setup on an existing frame, crop the frame (about 75 percent)
+  and upscale it with lanczos instead: the start and end frames stay identical in every detail and
+  the shot reads as a new lens.
+- A single-change edit fixes prop continuity cheaply: "remove the mug from his left hand, his hand
+  hangs empty, everything else identical" returns the same frame without the mug, and the video
+  shot from it inherits the fix. Check continuity across the whole cut before shooting, not after:
+  a prop set down in one shot must be gone from every later start frame.
+- A phone whose notifications must be read on screen belongs in a close-up of its own. Asked for
+  "dozens of notifications, one card legible" in a wide shot, the video model twice rendered the
+  cards as panels floating in the air above the handset, and a prompt forbidding it did not help.
+  In the wide shot describe only the glass lighting up and a list too small to read; give the
+  legible card to a macro insert built from a still (the still editor writes the sentence correctly
+  at that size) and generate the insert with `end_image_url` alone, so the clip animates a dark
+  screen into that exact final frame.
+- A dense shot is not a blurred shot. Five to ten seconds carry a full arc (a stare, a laugh, a
+  glance down, a press, a change of light) when each beat has its own clock; the same shot written
+  with one gesture returns as a slow push-in and reads as slow motion to the viewer. Write the
+  beats, and let a shot be cut only when it ends on the image the next shot starts from.
+- Whisper transcribes a muffled off-screen television as fluent sentences in whatever language you
+  ask for. Treat a transcript of "no intelligible words" audio as noise, and judge a presenter's
+  line only from the shot where the set is on screen.
