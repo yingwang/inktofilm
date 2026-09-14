@@ -105,6 +105,29 @@ reason each of its short rules exists.
   the sky, precipitation and season in every still prompt ("clear night, frost on the tiles, no snow")
   or a single face-matched close-up arrives in a snowfall the rest of the film does not have.
 
+## The script is the edit
+
+- A film written as a list of shot prompts, with the cut worked out later in the assembly script,
+  came out slow and thin next to one written as a timed edit, and the user could say why: the
+  second script was "obviously better", faster, fuller of detail, with the sound doing work. The
+  difference was not the video model, which was the same. It was that the second script decided,
+  before anything was generated, what is on screen in every second, what sound crosses each cut,
+  where the beats fall, and what the world is made of down to the scuff on the television. Write
+  that document first; [docs/script-writing.md](script-writing.md) is its shape.
+- Measure the world instead of describing it. "A lived-in kitchen" gets a showroom; "a mug, a
+  dripper, a wet brown filter, a gooseneck kettle, a tea towel folded twice, a cork mat, last
+  night's saucer and teaspoon in the sink, an eight-year-old fifty-five-inch television with a
+  two-centimetre bezel and a scuff on the lower right" gets a kitchen someone lives in. The same
+  goes for light (kelvin and white balance, and why), posture (which fingers hold the handle),
+  and air (how far the steam rises).
+- Fill every tenth of a second. The timeline in the script is what the prompt is built from, and a
+  stretch with nothing written is where the model puts a slow push-in and a blink. "From 5.0 to
+  10.0 nothing moves but breathing" is an instruction; silence in the timeline is not.
+- Keep the gates out of the assembly. Which still, which five-second test and which batch must be
+  approved, and what fails each, belong in the script or an `ACCEPTANCE.md` next to it, with the
+  budget and the rule that a request id is saved before a result is trusted. When those decisions
+  are made in the cutting room they are made too late and under pressure to ship.
+
 ## Faces and likenesses
 
 - A hosted face-swap model can sit in its queue for ten minutes and more while every other model

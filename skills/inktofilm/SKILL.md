@@ -69,7 +69,12 @@ Max as the default video generator, while respecting any model the user explicit
 output directory are reused, so the same command can be run again after a review and only the
 missing work is paid for.
 
-1. Write `script.md` and `plan.json` yourself, then
+1. Write `script.md` and `plan.json` yourself, following [docs/script-writing.md](../../docs/script-writing.md):
+   the film's engine in one sentence, a structure table that shows the rhythm, the world measured
+   in physical units, the shooting rules with framing percentages, each shot as prose plus a
+   technical line with a timeline to the tenth of a second, a sound plan, and the acceptance
+   gates with the budget. A script that is only a list of shot prompts leaves the edit to be
+   found in the assembly code, and the film comes out slow and thin. Then
    `inktofilm produce script.md --plan plan.json --stills-only -o <project>`. This renders one
    portrait per character and one still per shot and stops. Open every image. A portrait that is not
    the character, a still with the wrong framing, a face the wrong age, an extra person, or text on a
@@ -98,7 +103,14 @@ one breath:
 
 - Write video prompts as a cinematographer: medium and physics first ("photorealistic
   live-action, not animation", lens, light, air, "physically believable cloth, hair and
-  weight"), then blocking; name what must stay stable once, not five times.
+  weight"), then blocking; name what must stay stable once, not five times. Open every
+  prompt of a film with the same verbatim sentence; on a continued shot say "match the
+  input frame exactly:" and list what must not drift; state stillness as an action
+  ("nothing moves but breathing"); end with the audio list, then the negatives.
+- Scale is places, pace is beats: write the crowd as layered shots with their own timed
+  events and cut between them under one line of audio; one to three seconds per beat, cut
+  on an action, never a sped-up clip; each generated shot carries native sound only and the
+  music is one bed made once, ducked under speech and pulled out at the turn.
 - Give every action a clock ("within the first half second", "at the midpoint"); say
   "real-time speed" in the style and build tempo inside fight prompts; never put "slow
   motion" in `visual_style`. Check tempo with `inktofilm motion`.
