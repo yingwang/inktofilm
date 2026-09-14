@@ -140,6 +140,49 @@ reason each of its short rules exists.
   character, and a portrait generated from words alone will be recognised at once as not hers. Keep
   the photographs where the next production can find them and reuse them without being asked.
 
+## Identity stills: one image model with the photographs as references
+
+Two attempts at the same character on the same day, and the difference was the whole
+verdict. The first built the opening still with nano-banana from two photographs and then
+swapped the real face onto it with `fal-ai/face-swap`; the second gave all three photographs to
+a GPT image model (`fal-ai/gpt-image-1.5/edit`, `input_fidelity` high, `quality` high,
+`1536x1024`) and asked for one film still. The swap route produced a face that reads as pasted:
+the skin tone stops at the jaw, the head sits a little wrong on the neck, and the kitchen behind
+it is a bare showroom because nano-banana draws what the prompt names and nothing more. The
+GPT route produced a face the user's friend would be recognised by, on a body that belongs to
+it, in a kitchen with a fruit bowl, photographs on the fridge and a window onto a real street,
+and it took one call of about a minute. The user, shown both films, asked for the second method
+to be learned. So:
+
+- Build a photographed character's still with a reference-taking image model and every good
+  photograph at once, and only then think about a swap. Say in the prompt that all attached
+  photographs are identity references of the SAME person and not edit targets; list the features
+  that must survive (face length and jaw, nose, eyes, the glasses, the hair as it actually grows,
+  "closely cut sides, irregular upstanding top", not "spiky"); forbid the model's reflexes by name
+  (no beautification, slimming, widening, age change, airbrushed skin, no straight fringe). A swap
+  stays the repair for a face the edit idealised away, not the first move.
+- Do not overstate a feature. "Full cheeks" written once made the generated face rounder and
+  shorter than the man's, and the user's first comment was that the face should be longer. Describe
+  proportions from the photographs, or say nothing and let the references carry them.
+- Put the still in mid-action and looking off frame ("setting the mug down with one hand, head
+  already turned toward a television outside the frame, a brief incredulous half smile") rather
+  than posing for the camera. A still that already contains the first beat gives image-to-video
+  somewhere to go in the first half second, and the eye-line is cut-ready.
+- Ask for a lived-in background in words ("slightly messy lived-in kitchen") and pin the lens
+  (50mm), the light (soft overcast morning) and the wardrobe; the GPT model fills the world when
+  told the world is there, and a bare set is what you get when you forget.
+- Then shoot a five-second motion test from that still before any batch: put a real action in the
+  first half second, a turn of the eyes at a stated time, a brief half smile, the remote picked up
+  and pressed at stated seconds, and write "no long pauses, no slow push-in, no mug remaining in
+  hand after being set down". Judge the test on a frame sheet and show it to the user; expressions
+  come out a size too large by default, so the next prompt asks for restraint ("eyes move first,
+  hold half a beat, then the remote; face stays quiet").
+- The image model's endpoint takes `image_size` in pixels (`1536x1024`, `1024x1536`,
+  `1024x1024`) rather than an aspect ratio, and accepts `jpeg` output; `FalImageGenerator` maps the
+  ratio when the model name contains `gpt-image`, so `--image-edit-model fal-ai/gpt-image-1.5/edit`
+  is the only switch. The balance endpoint lagged the charge, so count the call at roughly a fifth
+  of a dollar until the ledger catches up.
+
 ## Screens, broadcasts and readable text
 
 - A television inside the shot is best built as a still first. `nano-banana/edit` with the room

@@ -114,6 +114,12 @@ one breath:
   normal distance (a selfie distorts), describe glasses in the portrait prompt, describe a
   famous costume without its name, and reuse a character's supplied photographs in every
   later film.
+- Build a photographed character's still with a reference-taking image model and all the
+  photographs at once (`--image-edit-model fal-ai/gpt-image-1.5/edit`): say the photos are
+  identity references of the same person, list the features that must survive, forbid
+  beautification and slimming by name, put him mid-action looking off frame in a lived-in
+  set, then shoot a five-second motion test from the still and show its frames before any
+  batch. A face swap is the repair for a face the edit idealised, not the first move.
 - Assemble at CRF 16 or lower with `-preset slow`, keep the provider's frame size, pin
   `settb` around `concat` when mixing dissolves, and verify the mixed elements, not only
   the container.

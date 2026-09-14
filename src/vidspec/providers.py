@@ -253,6 +253,18 @@ def _write_image(url: str, destination: Path, downloader: Download) -> Path:
     return destination
 
 
+# GPT image endpoints choose from three canvases; the nearest one for each ratio the plan uses.
+_GPT_IMAGE_SIZES = {
+    "16:9": "1536x1024",
+    "3:2": "1536x1024",
+    "4:3": "1536x1024",
+    "1:1": "1024x1024",
+    "9:16": "1024x1536",
+    "2:3": "1024x1536",
+    "3:4": "1024x1536",
+}
+
+
 class FalImageGenerator:
     """Generate a composition-locked still through the user's fal account.
 
@@ -286,16 +298,22 @@ class FalImageGenerator:
             if not reference.is_file():
                 raise ProviderError(f"Reference still does not exist: {reference}")
         client = _fal_client(self._client)
+        model = self.edit_model if references else self.model
         arguments: Dict[str, Any] = {
             "prompt": prompt,
             "num_images": 1,
-            "aspect_ratio": aspect_ratio,
             # The file is saved as .jpg, so ask for JPEG rather than the model's PNG default.
             "output_format": "jpeg",
         }
-        model = self.model
+        if "gpt-image" in model:
+            # The GPT image endpoints take a pixel size rather than a ratio, and their
+            # fidelity switch is what keeps a photographed face the person's own.
+            arguments["image_size"] = _GPT_IMAGE_SIZES.get(aspect_ratio, "auto")
+            arguments["quality"] = "high"
+            arguments["input_fidelity"] = "high"
+        else:
+            arguments["aspect_ratio"] = aspect_ratio
         if references:
-            model = self.edit_model
             arguments["image_urls"] = [client.upload_file(item) for item in references]
         try:
             result = client.subscribe(model, arguments=arguments)

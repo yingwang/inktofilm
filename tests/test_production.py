@@ -307,6 +307,46 @@ def test_fal_image_generator_edits_from_references_only_when_given_them(tmp_path
     assert "private-test-key" not in json.dumps(calls, default=str)
 
 
+def test_fal_image_generator_speaks_the_gpt_image_dialect(tmp_path, monkeypatch):
+    calls = []
+
+    class FakeClient:
+        @staticmethod
+        def upload_file(path):
+            return f"https://example.test/{path.name}"
+
+        @staticmethod
+        def subscribe(model, arguments):
+            calls.append((model, arguments))
+            return {"images": [{"url": "https://example.test/still.jpg"}]}
+
+    monkeypatch.setenv("FAL_KEY", "private-test-key")
+    generator = FalImageGenerator(
+        model="fal-ai/gpt-image-1.5",
+        edit_model="fal-ai/gpt-image-1.5/edit",
+        client=FakeClient(),
+        downloader=lambda url: b"still-bytes",
+    )
+
+    photo = tmp_path / "references" / "front.jpg"
+    photo.parent.mkdir()
+    photo.write_bytes(b"photo")
+    still = tmp_path / "stills" / "kitchen.jpg"
+    generator.generate("this man at his kitchen counter", still, "16:9", [photo])
+
+    model, arguments = calls[0]
+    assert model == "fal-ai/gpt-image-1.5/edit"
+    assert arguments["image_urls"] == ["https://example.test/front.jpg"]
+    assert arguments["image_size"] == "1536x1024"
+    assert arguments["input_fidelity"] == "high"
+    assert arguments["quality"] == "high"
+    assert "aspect_ratio" not in arguments
+
+    generator.generate("an empty kitchen", tmp_path / "stills" / "empty.jpg", "9:16")
+    assert calls[1][0] == "fal-ai/gpt-image-1.5"
+    assert calls[1][1]["image_size"] == "1024x1536"
+
+
 def test_fal_face_swapper_sends_the_face_and_the_base_still(tmp_path, monkeypatch):
     captured = {}
 
