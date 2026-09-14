@@ -198,7 +198,8 @@ visible and retries them selectively; it does not pretend the underlying models 
 The conversational skill is the front door. The engine beneath it remains open and provider-neutral:
 `inktofilm produce` runs a plan stage by stage (`--plan-only`, `--stills-only`, `--reshoot`,
 `--select`), `inktofilm frames` and `inktofilm motion` give a reviewer the sampled frames and the
-motion curve of any take, and `inktofilm run` replays a suite of story assertions against finished
+motion curve of any take, `inktofilm music-peak` finds the bar a music bed actually peaks on so the
+climax can be cut onto it, and `inktofilm run` replays a suite of story assertions against finished
 clips. See the [technical guide](docs/technical-guide.md),
 [provider protocols](docs/provider-protocols.md),
 [semantic evaluator protocol](docs/semantic-evaluators.md), and
@@ -307,7 +308,7 @@ InkToFilm 可以从一句话或一个剧本出发，做出完整的短片、预�
 
 ## 给开发者
 
-对话式的 skill 是正门，底下的引擎保持开放且不绑定任何提供方：`inktofilm produce` 可以分阶段执行一份分镜计划（`--plan-only`、`--stills-only`、`--reshoot`、`--select`），`inktofilm frames` 与 `inktofilm motion` 分别给出任意一条素材的抽样帧和运动曲线，`inktofilm run` 则把一组故事断言回放到成片上。详见[技术指南](docs/technical-guide.md)、[提供方协议](docs/provider-protocols.md)、[语义评审协议](docs/semantic-evaluators.md)与[研究设计](docs/research-design.md)。欢迎通过 [CONTRIBUTING.md](CONTRIBUTING.md) 参与贡献。
+对话式的 skill 是正门，底下的引擎保持开放且不绑定任何提供方：`inktofilm produce` 可以分阶段执行一份分镜计划（`--plan-only`、`--stills-only`、`--reshoot`、`--select`），`inktofilm frames` 与 `inktofilm motion` 分别给出任意一条素材的抽样帧和运动曲线，`inktofilm music-peak` 找出一条音乐底轨真正最响的那一拍好把高潮剪在上面，`inktofilm run` 则把一组故事断言回放到成片上。详见[技术指南](docs/technical-guide.md)、[提供方协议](docs/provider-protocols.md)、[语义评审协议](docs/semantic-evaluators.md)与[研究设计](docs/research-design.md)。欢迎通过 [CONTRIBUTING.md](CONTRIBUTING.md) 参与贡献。
 
 ## 许可
 

@@ -52,9 +52,16 @@ the user's language.
    the crowd's cheer, the phone's vibration). Whether there is music, and if so: one continuous
    original instrumental bed made once, tightening as the film goes, ducked under every spoken
    line, and pulled out hard at the turn; every generated shot carries native sound only, never its
-   own music, so that clips do not fight at the cuts. Which lines are in which language and the
-   rule that each is transcribed and checked. What the final mix is checked for: a line cut off, a
-   line buried, a silent tail, an audio stream shorter than the picture.
+   own music, so that clips do not fight at the cuts. Write the music to the film's clock: name
+   the second of the climax in the script, and the bed's loudest bar has to land on that second,
+   not somewhere near it. A generated bed does not know where your climax is, so measure it
+   (`inktofilm music-peak bed.mp3 --climax 47.0` prints where its loudest half second falls and
+   the offset that puts it on the cut) and slide or trim the bed, or nudge the cut by a few frames,
+   until the two coincide; then the drop or the hard stop that follows is the reveal, and the
+   viewer feels the film hit rather than drift. Which lines are in which language and the rule
+   that each is transcribed and checked. What the final mix is checked for: a line cut off, a
+   line buried, a silent tail, an audio stream shorter than the picture, and a music peak that
+   arrives before or after the picture's.
 7. **Acceptance gates and the budget.** What must be looked at and approved before the next stage
    spends money: the character still, then a five-second motion test, then the batch. What counts
    as failure at each gate ("a still that is not him, a test in which nothing happens in the first

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import shutil
 import subprocess
+from array import array
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
@@ -164,6 +166,65 @@ def detect_freezes(
 
 _MOTION_TIME_RE = re.compile(r"pts_time:(?P<time>[0-9.]+)")
 _MOTION_VALUE_RE = re.compile(r"lavfi\.signalstats\.YAVG=(?P<value>[0-9.]+)")
+
+
+def loudness_curve(
+    path: Path,
+    bucket_seconds: float = 0.5,
+    runner: Runner = subprocess.run,
+) -> List[float]:
+    """RMS level per time bucket of an audio file, on a 0 to 1 scale, as a loudness curve.
+
+    The file is decoded to 16-bit mono at 8 kHz through ffmpeg and each bucket's energy is
+    averaged. A prompt can ask a music model for a climax at a particular second but cannot
+    make it land there; the curve says where the bed actually peaks, so the picture's climax
+    can be cut onto that bar instead of near it.
+    """
+    if bucket_seconds <= 0:
+        raise MediaToolError("bucket_seconds must be positive")
+    ffmpeg = require_tool("ffmpeg")
+    rate = 8000
+    command = [
+        ffmpeg,
+        "-hide_banner",
+        "-nostats",
+        "-i",
+        str(path),
+        "-vn",
+        "-ac",
+        "1",
+        "-ar",
+        str(rate),
+        "-f",
+        "s16le",
+        "-",
+    ]
+    completed = runner(command, capture_output=True, check=False)
+    if completed.returncode != 0:
+        stderr = completed.stderr or b""
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode(errors="replace")
+        raise MediaToolError(stderr.strip() or "ffmpeg could not decode the audio")
+    raw = completed.stdout or b""
+    samples = array("h")
+    samples.frombytes(raw[: len(raw) // 2 * 2])
+    per_bucket = max(1, int(round(rate * bucket_seconds)))
+    curve: List[float] = []
+    for start in range(0, len(samples), per_bucket):
+        chunk = samples[start : start + per_bucket]
+        if not chunk:
+            break
+        energy = sum(value * value for value in chunk) / len(chunk)
+        curve.append(math.sqrt(energy) / 32768.0)
+    return curve
+
+
+def loudest_moment(curve: Sequence[float], bucket_seconds: float) -> float:
+    """Start time of the loudest bucket in a loudness curve; 0.0 when the curve is empty."""
+    if not curve:
+        return 0.0
+    index = max(range(len(curve)), key=lambda i: curve[i])
+    return index * bucket_seconds
 
 
 def motion_energy(

@@ -15,7 +15,7 @@ from vidspec import __version__
 from vidspec.compare import ComparisonError, compare_report_files, output_paths, write_comparison
 from vidspec.config import ConfigurationError, load_suite
 from vidspec.engine import run_suite
-from vidspec.media import MediaToolError, motion_energy, probe_video
+from vidspec.media import MediaToolError, loudest_moment, loudness_curve, motion_energy, probe_video
 from vidspec.models import STATUS_ORDER
 from vidspec.produce import ProductionOrchestrator
 from vidspec.production import (
@@ -106,6 +106,24 @@ def _parser() -> argparse.ArgumentParser:
         type=float,
         default=0.5,
         help="seconds per bucket (default: 0.5)",
+    )
+
+    music_peak = commands.add_parser(
+        "music-peak",
+        help="print where an audio bed is loudest, and the offset that puts that bar on the climax",
+    )
+    music_peak.add_argument("audio")
+    music_peak.add_argument(
+        "--bucket",
+        type=float,
+        default=0.5,
+        help="seconds per bucket (default: 0.5)",
+    )
+    music_peak.add_argument(
+        "--climax",
+        type=float,
+        default=None,
+        help="second of the film where the picture peaks; prints where to start the bed",
     )
 
     run = commands.add_parser("run", help="run a JSON test suite")
@@ -358,6 +376,31 @@ def _run(args: argparse.Namespace) -> int:
         for index, value in enumerate(curve):
             bar = "#" * int(round(40 * value / peak)) if peak else ""
             print(f"{index * args.bucket:5.1f}s {value:6.2f} {bar}")
+        return 0
+    if args.command == "music-peak":
+        audio = Path(args.audio).resolve()
+        if not audio.is_file():
+            print(f"No such audio: {audio}", file=sys.stderr)
+            return 2
+        curve = loudness_curve(audio, args.bucket)
+        peak = max(curve) if curve else 0.0
+        for index, value in enumerate(curve):
+            bar = "#" * int(round(40 * value / peak)) if peak else ""
+            print(f"{index * args.bucket:5.1f}s {value:6.3f} {bar}")
+        loudest = loudest_moment(curve, args.bucket)
+        print(f"loudest {args.bucket:g}s starts at {loudest:.1f}s of {len(curve) * args.bucket:.1f}s")
+        if args.climax is not None:
+            offset = args.climax - loudest
+            if offset >= 0:
+                print(
+                    f"start the bed at {offset:.1f}s so its loudest bar lands on the "
+                    f"{args.climax:.1f}s climax"
+                )
+            else:
+                print(
+                    f"trim {-offset:.1f}s from the head of the bed so its loudest bar lands on the "
+                    f"{args.climax:.1f}s climax"
+                )
         return 0
     if args.command == "frames":
         if not 1 <= args.count <= 24:

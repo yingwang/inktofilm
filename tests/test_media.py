@@ -106,3 +106,24 @@ def test_motion_energy_averages_frame_differences_per_bucket(monkeypatch, tmp_pa
     # and is skipped; bucket 0 is therefore frame 2 alone, bucket 2 has no frames.
     assert curve == [4.0, 10.0, 0.0, 1.0]
     assert media.motion_energy(video, 0.5, lambda *args, **kwargs: completed("")) == []
+
+
+def test_loudness_curve_finds_the_bar_the_bed_peaks_on(monkeypatch, tmp_path):
+    import subprocess
+    from array import array
+
+    monkeypatch.setattr(media, "require_tool", lambda name: name)
+    rate = 8000
+    quiet = array("h", [200] * rate)
+    loud = array("h", [20000, -20000] * (rate // 2))
+    pcm = (quiet + loud + quiet).tobytes()
+
+    def runner(command, **kwargs):
+        assert command[-1] == "-" and "s16le" in command
+        return subprocess.CompletedProcess(args=command, returncode=0, stdout=pcm, stderr=b"")
+
+    curve = media.loudness_curve(tmp_path / "bed.mp3", 0.5, runner)
+    assert len(curve) == 6
+    assert curve[2] > 10 * curve[0]
+    assert media.loudest_moment(curve, 0.5) in (1.0, 1.5)
+    assert media.loudest_moment([], 0.5) == 0.0

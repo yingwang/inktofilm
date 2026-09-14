@@ -88,6 +88,13 @@ frames, averaged per half second (`--bucket` changes the width), with a bar per 
 "does this fight have a rhythm" without playing the clip: bursts separated by a lull read as
 tempo, a flat line reads as floating, and values near zero mean nothing moved.
 
+`inktofilm music-peak bed.mp3` does the same for sound: it decodes the bed to mono and prints an
+RMS level per half second with a bar per bucket, then the start of the loudest bucket. With
+`--climax 47.0` it also prints the offset that puts that bar on the film's climax (start the bed
+later, or trim its head). A music model asked for "a massive climax at the very end" may peak at
+32 s of a 40 s bed and decay after; the curve shows it, and the cut to silence is then placed on
+the measured bar rather than where the prompt promised it.
+
 ## Stills, faces, and chained shots
 
 The plan decides these per shot, and the manifest records what each shot actually used.

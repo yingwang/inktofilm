@@ -110,7 +110,8 @@ one breath:
 - Scale is places, pace is beats: write the crowd as layered shots with their own timed
   events and cut between them under one line of audio; one to three seconds per beat, cut
   on an action, never a sped-up clip; each generated shot carries native sound only and the
-  music is one bed made once, ducked under speech and pulled out at the turn.
+  music is one bed made once, ducked under speech and pulled out at the turn, with its loudest
+  bar placed on the climax cut (`inktofilm music-peak` measures where that bar is).
 - Give every action a clock ("within the first half second", "at the midpoint"); say
   "real-time speed" in the style and build tempo inside fight prompts; never put "slow
   motion" in `visual_style`. Check tempo with `inktofilm motion`.

@@ -123,6 +123,15 @@ reason each of its short rules exists.
 - Fill every tenth of a second. The timeline in the script is what the prompt is built from, and a
   stretch with nothing written is where the model puts a slow push-in and a blink. "From 5.0 to
   10.0 nothing moves but breathing" is an instruction; silence in the timeline is not.
+- The music has to hit the picture's peak, not play under it. A 40-second bed prompted to "build
+  to a massive climax at the very end" actually peaked at 32 s and decayed from 33 s; started at
+  the first channel change and cut at the mute, its loudest bar landed 2.9 s before the cut to
+  silence and the film went quiet under the crowd's last roar before the silence that was meant
+  to be the shock. The user's word for the film she preferred was that its music was "on the beat:
+  the loudest moment and the climax matched". Name the climax second in the script, measure the
+  bed (`inktofilm music-peak bed.mp3 --climax 49.6` would have said "start the bed at 17.6 s"),
+  and slide or trim it until the two coincide before ducking and loudness; when they are a few
+  frames apart, move the cut, not the music.
 - Keep the gates out of the assembly. Which still, which five-second test and which batch must be
   approved, and what fails each, belong in the script or an `ACCEPTANCE.md` next to it, with the
   budget and the rule that a request id is saved before a result is trusted. When those decisions
