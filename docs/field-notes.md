@@ -179,3 +179,13 @@ reason each of its short rules exists.
 - Whisper transcribes a muffled off-screen television as fluent sentences in whatever language you
   ask for. Treat a transcript of "no intelligible words" audio as noise, and judge a presenter's
   line only from the shot where the set is on screen.
+
+## Broadcast look: render graphics locally, let the model shoot only the picture
+
+- Ask the video model for a clean anchor or field reporter with the person on the LEFT third, the bottom fifth of the frame empty, and "no on-screen text, no lower third, no logo". It obeys almost every time, and the generated speech in Swedish, English, Russian, Japanese and Arabic came out correct on the first take when the line was given verbatim in quotes.
+- Bugs, lower thirds, tickers, clocks and a framed file-photo box are drawn with PIL at the final resolution and overlaid with ffmpeg. Spelling is then guaranteed, every language works (Arabic via arabic-reshaper + python-bidi, Japanese via Hiragino), and the ticker scrolls with an overlay x expression across a whole block so it stays continuous through cuts.
+- A studio shot with an empty panel and a static camera takes a pasted graphic directly (gradient background, portrait, caption). No tracking needed.
+- Four elements are enough to read as a real channel: bug top-left, lower third, ticker for the 24-hour channels, and a full-screen file-photo slate with a slow zoom. Cutting to the slate mid-sentence while the anchor audio continues is exactly what real news does and hides the seam.
+- Identity of a real person: generate the scene still with the reference photos, then face-swap the real face onto the still before image-to-video. The prompt alone kept giving a rounder, shorter face; the swap locks the true proportions and the motion model carries them.
+- Phone screens: generate the phone dark, then composite the UI locally with a perspective warp into the screen quad, keep a little of the original glass reflection, light the screen up over a few frames, jitter the frame during vibration and push in slowly. Legible and no floating cards.
+- Music under a montage: sidechain-compress the music with the dialogue track as key, then two-pass loudnorm. Add faint pink-noise room tone so quiet kitchen beats are not digital silence.
