@@ -73,8 +73,8 @@ missing work is paid for.
    the film's engine in one sentence, a structure table that shows the rhythm, the world measured
    in physical units, the shooting rules with framing percentages, each shot as prose plus a
    technical line with a timeline to the tenth of a second, a sound plan, and the acceptance
-   gates with the budget. A script that is only a list of shot prompts leaves the edit to be
-   found in the assembly code, and the film comes out slow and thin. Then
+   gates with the budget. A finely timed script can still make a slow film when all it
+   schedules is one person being still; put the world outside on screen and cut on beats. Then
    `inktofilm produce script.md --plan plan.json --stills-only -o <project>`. This renders one
    portrait per character and one still per shot and stops. Open every image. A portrait that is not
    the character, a still with the wrong framing, a face the wrong age, an extra person, or text on a

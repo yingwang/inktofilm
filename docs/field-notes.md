@@ -107,13 +107,14 @@ reason each of its short rules exists.
 
 ## The script is the edit
 
-- A film written as a list of shot prompts, with the cut worked out later in the assembly script,
-  came out slow and thin next to one written as a timed edit, and the user could say why: the
-  second script was "obviously better", faster, fuller of detail, with the sound doing work. The
-  difference was not the video model, which was the same. It was that the second script decided,
-  before anything was generated, what is on screen in every second, what sound crosses each cut,
-  where the beats fall, and what the world is made of down to the scuff on the television. Write
-  that document first; [docs/script-writing.md](script-writing.md) is its shape.
+- Two scripts for the same film, a day apart, and the user could say which was "obviously
+  better", faster, fuller of detail, with the sound doing work. The video model was the same. The
+  first script was meticulous and slow: one man, one television, three identical rounds, every
+  thumb press timed. The second kept the measuring and decided different things before anything
+  was generated: what the world outside is doing in every second, what sound crosses each cut,
+  where the beats fall, which gate the money waits behind. Write that document first;
+  [docs/script-writing.md](script-writing.md) is its shape. Precision is necessary and not
+  sufficient; what is scheduled matters more than how finely.
 - Measure the world instead of describing it. "A lived-in kitchen" gets a showroom; "a mug, a
   dripper, a wet brown filter, a gooseneck kettle, a tea towel folded twice, a cork mat, last
   night's saucer and teaspoon in the sink, an eight-year-old fifty-five-inch television with a
@@ -123,14 +124,14 @@ reason each of its short rules exists.
 - Fill every tenth of a second. The timeline in the script is what the prompt is built from, and a
   stretch with nothing written is where the model puts a slow push-in and a blink. "From 5.0 to
   10.0 nothing moves but breathing" is an instruction; silence in the timeline is not.
-- The music has to hit the picture's peak, not play under it. A 40-second bed prompted to "build
-  to a massive climax at the very end" actually peaked at 32 s and decayed from 33 s; started at
-  the first channel change and cut at the mute, its loudest bar landed 2.9 s before the cut to
-  silence and the film went quiet under the crowd's last roar before the silence that was meant
-  to be the shock. The user's word for the film she preferred was that its music was "on the beat:
-  the loudest moment and the climax matched". Name the climax second in the script, measure the
-  bed (`inktofilm music-peak bed.mp3 --climax 49.6` would have said "start the bed at 17.6 s"),
-  and slide or trim it until the two coincide before ducking and loudness; when they are a few
+- The music has to hit the picture's peak, and the user hears whether it does. The film she
+  preferred had, in her words, music "on the beat: the loudest moment and the climax matched", and
+  she asked for that to be kept. Measured, its 40-second bed (prompted to "build to a massive
+  climax at the very end") peaked at 32 s and decayed from 33 s; started at the first channel
+  change and cut at the mute, the loudest bar sat 2.9 s before the cut to silence, close enough
+  to land as a hit. Make it exact rather than lucky next time: name the climax second in the
+  script, measure the bed (`inktofilm music-peak bed.mp3 --climax 49.6` would have said "start
+  the bed at 17.6 s"), and slide or trim it before ducking and loudness; when the two are a few
   frames apart, move the cut, not the music.
 - Keep the gates out of the assembly. Which still, which five-second test and which batch must be
   approved, and what fails each, belong in the script or an `ACCEPTANCE.md` next to it, with the

@@ -1,12 +1,15 @@
 # Writing the script
 
 The film is decided in the script, before a still is rendered or a second of video is paid for.
-Two scripts for the same one-minute comedy, written on the same day, made the point: one was a
-list of shot prompts with the edit worked out later in the assembly code, and the film it produced
-was judged slow, thin and "one man sitting in front of a television"; the other was written as a
-timed edit with a measured world and a sound plan, and the user asked for its method to be
-learned. This page is that method. Read it before writing `script.md`, and write the script in
-the user's language.
+Two scripts for the same one-minute comedy, a day apart, made the point. The first kept one man
+alone with his television through three identical rounds; it measured his kitchen to the
+centimetre and timed his thumb to the tenth of a second, and the film it produced was judged slow,
+thin and "one man sitting in front of a television". The rewrite kept the measuring and the timing
+and changed what was scheduled: it put the world outside the kitchen on screen, cut every one to
+three seconds on an action, planned the sound as beats with one music bed, and gated the money
+behind a likeness test. The user called that film obviously better, faster, fuller of detail, with
+music on the beat, and asked for its method to be learned. This page is that method. Read it
+before writing `script.md`, and write the script in the user's language.
 
 ## The shape of the document
 
