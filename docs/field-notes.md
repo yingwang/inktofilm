@@ -256,6 +256,15 @@ to be learned. So:
   ask for. Treat a transcript of "no intelligible words" audio as noise, and judge a presenter's
   line only from the shot where the set is on screen.
 
+## Product films: real screens, generated world
+
+- A screen recording from the Android emulator (`adb shell screenrecord`) only emits a frame when
+  the screen changes, so its timeline has gaps; seek into it with `-ss` and the cut opens on black
+  until the next change. Convert every recording to constant frame rate first
+  (`ffmpeg -vf fps=30 -fps_mode cfr`), then cut. On a watch emulator the swipe-to-dismiss from the
+  list screen also leaves the app, so start every recorded beat from a known screen and count the
+  dismissals back.
+
 ## Broadcast look: render graphics locally, let the model shoot only the picture
 
 - Ask the video model for a clean anchor or field reporter with the person on the LEFT third, the bottom fifth of the frame empty, and "no on-screen text, no lower third, no logo". It obeys almost every time, and the generated speech in Swedish, English, Russian, Japanese and Arabic came out correct on the first take when the line was given verbatim in quotes.
