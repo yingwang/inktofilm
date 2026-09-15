@@ -264,6 +264,15 @@ to be learned. So:
   (`ffmpeg -vf fps=30 -fps_mode cfr`), then cut. On a watch emulator the swipe-to-dismiss from the
   list screen also leaves the app, so start every recorded beat from a known screen and count the
   dismissals back.
+- The same recorder gives a one-frame file for a screen that never changes, and the constant-rate
+  conversion of that is empty. A static beat (a library list, a settings page) is a screenshot
+  turned into a clip with `ffmpeg -loop 1 -framerate 30 -t 2.5 -i shot.png`, with the tap ripple
+  drawn on top as usual.
+- Join segments with the `concat` filter in one encode, not the concat demuxer with `-c copy`. The
+  copied segments kept their own timestamps; the container reported the full length, and yet a
+  frame sampler and a player both saw only the last few seconds. `setpts=N/30/TB` on the demuxer
+  output was worse, it folded 27 seconds into 10. `[0:v][1:v]...concat=n=N:v=1:a=0,fps=30` gives
+  clean timestamps every time.
 
 ## Broadcast look: render graphics locally, let the model shoot only the picture
 
