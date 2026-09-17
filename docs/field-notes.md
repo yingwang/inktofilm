@@ -311,3 +311,27 @@ to be learned. So:
 - Keep the assembly in a second script that reads the slot lengths from the shot table and cuts
   each clip to its slot. Re-encode the cuts rather than copying: copied streams keep their own
   timestamps and the concatenated file plays wrong even when the container reports the right length.
+
+## What a film actually costs
+
+- Price the two steps separately before planning a film, because they are charged on different
+  axes and the cheaper-looking one is usually the larger bill. Video is charged per second of
+  output: a six-second clip at 768P is a quarter of the price of the same clip at 1080P, and the
+  rate can be sitting under a temporary promotion that will end. Images are charged per image and
+  per quality tier, and the top tier is roughly four times the middle one at the same size.
+- A three-minute film is not one bill, it is about eighty: thirty-four shots, a tail segment for
+  every shot longer than one generation, a start frame for each, plus the casting rounds and the
+  shots that get redone. Count the generations before starting, not after.
+- Ask for the expensive image tier only where a face carries the shot. A wide, a back, an empty
+  room, a sky and a crowd look the same at the middle tier, and on a thirty-four shot film two
+  thirds of the frames are in that group.
+- Reference photographs are charged as input on every still that carries them. Three photographs
+  place a face as well as five; the extra two are paid for on every shot they are attached to.
+- Uploading references to the provider's own storage adds a dependency that fails on its own
+  schedule: when the account was locked the storage endpoint began answering 403 while the models
+  still ran, so the queue died on an error that named the wrong cause. Send references inline as
+  data URIs and the step has one fewer way to break.
+- A queue that hits an exhausted balance keeps going and logs one failure per remaining shot, so
+  the first failure is the only one worth reading. Check the earliest error in the log, not the
+  last.
+
