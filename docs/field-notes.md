@@ -54,15 +54,24 @@ reason each of its short rules exists.
   rest, and the stillness reads as fake. Name what must stay stable in one clause (one sword, both
   faces), not in five.
 - Untimed action either never arrives or is spent on a wind-up, and a shot with no beat at all
-  comes back as a slow push-in on people holding a pose. The fix is a chain of forceful verbs, not
-  a stopwatch: "a boot lashes out and kicks the pendant skidding away out of frame; a hand shoves
-  her shoulder hard, the blow turns her, her feet scuff for purchase, her sleeve and hem whip with
-  it, and she comes back square exactly where she stood". Naming the clock ("0.6 s", "three or four
-  centimetres") does raise the measured energy, but it also spends the model's attention on hitting
-  marks, and what comes back is stiffer and less natural. Reserve explicit timings for a fight,
-  where the rhythm is the point; everywhere else let the verbs carry it. Measured on the same shot,
-  verb chains with no numbers moved the frame-to-frame energy from a peak of 2.4 to peaks of 9 and
-  10, which is the whole usable range.
+  comes back as a slow push-in on people holding a pose. The instinct is then to write the
+  choreography out, first with a stopwatch ("0.6 s", "three or four centimetres") and then, when
+  that returns something stiff, as a chain of forceful verbs. Both are the same mistake at
+  different resolutions, and the verb chain only hides it better. The model executes whatever
+  blocking it is given, so any error in the blocking is rendered faithfully: a body that is
+  described as taking a blast with its arms locked and its rear foot skidding will do exactly that,
+  and because the description was written by someone who was not working out the forces, the result
+  floats. Write the situation instead, and nothing else: what has just happened, who is in danger,
+  what each person wants in this instant. Then hand the physics back with one sentence, such as
+  "let the bodies move the way real bodies under a real impact would; work out the weight, the
+  footing and the order of it yourself". Measured on the same shot with the same start frame and
+  only the motion text changed, the blocked version peaked at 10.0 along a smooth ramp
+  (1.8, 2.6, 5.8, 7.5, 9.8, 10.0), which is a camera push rather than an impact; the
+  situation-only version peaked at 15.3 with the profile of something actually landing
+  (0.7, 0.9, 4.9, 2.1, 15.3, 12.3). The same applies to scene description: naming the props, the
+  lantern count and the exact grade buys nothing, while "beautiful, fresh, clean light" leaves the
+  model free to build a room that hangs together. Do not write a script the way you would write
+  code. The specification is the situation; the implementation is the model's.
 - Never write "slow motion" or "elegant, unhurried" into `visual_style` for a film with a fight in
   it: the style is restated on every shot, so every exchange arrives floating and the fight has no
   rhythm. Say "real-time speed" in the style, and build tempo inside the fight prompts: count the
@@ -322,9 +331,11 @@ to be learned. So:
 - A three-minute film is not one bill, it is about eighty: thirty-four shots, a tail segment for
   every shot longer than one generation, a start frame for each, plus the casting rounds and the
   shots that get redone. Count the generations before starting, not after.
-- Ask for the expensive image tier only where a face carries the shot. A wide, a back, an empty
-  room, a sky and a crowd look the same at the middle tier, and on a thirty-four shot film two
-  thirds of the frames are in that group.
+- Check which image model the stills are going through before optimising the tier inside one of
+  them. Splitting a film between an expensive model's top tier for faces and its middle tier for
+  everything else saves less than moving the whole film to a cheaper model: the flat rate on
+  nano-banana is about a fifth of the top tier that was being rationed, it holds a face from
+  reference photographs at least as well, and there is no tier to decide per shot.
 - Reference photographs are charged as input on every still that carries them. Three photographs
   place a face as well as five; the extra two are paid for on every shot they are attached to.
 - Uploading references to the provider's own storage adds a dependency that fails on its own
@@ -334,4 +345,12 @@ to be learned. So:
 - A queue that hits an exhausted balance keeps going and logs one failure per remaining shot, so
   the first failure is the only one worth reading. Check the earliest error in the log, not the
   last.
+- A balance that has just been topped up is not visible to the provider immediately, and the lock
+  can persist for several minutes after the money has arrived: the same account answered "locked,
+  reason TOP_UP" on one endpoint and "exhausted balance" on another while the payment settled, and
+  then ran a shot, and then claimed to be exhausted again. Do not read any of that as the real
+  balance and do not ask for another payment on the strength of it. Because the queue skips shots
+  whose output already exists, wrapping it in a loop that retries every few minutes costs nothing
+  and finishes on its own; kill the loop before running the queue by hand, or both copies will
+  generate the same shot twice.
 
