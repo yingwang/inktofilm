@@ -53,9 +53,16 @@ reason each of its short rules exists.
   returns a photograph that twitches: the model animates what it is told to animate and freezes the
   rest, and the stillness reads as fake. Name what must stay stable in one clause (one sword, both
   faces), not in five.
-- Give every action a clock: "within the first half second", "at the midpoint", "in the final
-  second". Untimed action either never arrives or is spent on a wind-up, and a shot with no timed
-  beat comes back as a slow push-in on people holding a pose.
+- Untimed action either never arrives or is spent on a wind-up, and a shot with no beat at all
+  comes back as a slow push-in on people holding a pose. The fix is a chain of forceful verbs, not
+  a stopwatch: "a boot lashes out and kicks the pendant skidding away out of frame; a hand shoves
+  her shoulder hard, the blow turns her, her feet scuff for purchase, her sleeve and hem whip with
+  it, and she comes back square exactly where she stood". Naming the clock ("0.6 s", "three or four
+  centimetres") does raise the measured energy, but it also spends the model's attention on hitting
+  marks, and what comes back is stiffer and less natural. Reserve explicit timings for a fight,
+  where the rhythm is the point; everywhere else let the verbs carry it. Measured on the same shot,
+  verb chains with no numbers moved the frame-to-frame energy from a peak of 2.4 to peaks of 9 and
+  10, which is the whole usable range.
 - Never write "slow motion" or "elegant, unhurried" into `visual_style` for a film with a fight in
   it: the style is restated on every shot, so every exchange arrives floating and the fight has no
   rhythm. Say "real-time speed" in the style, and build tempo inside the fight prompts: count the
@@ -283,3 +290,24 @@ to be learned. So:
 - Identity of a real person: generate the scene still with the reference photos, then face-swap the real face onto the still before image-to-video. The prompt alone kept giving a rounder, shorter face; the swap locks the true proportions and the motion model carries them.
 - Phone screens: generate the phone dark, then composite the UI locally with a perspective warp into the screen quad, keep a little of the original glass reflection, light the screen up over a few frames, jitter the frame during vibration and push in slowly. Legible and no floating cards.
 - Music under a montage: sidechain-compress the music with the dialogue track as key, then two-pass loudnorm. Add faint pink-noise room tone so quiet kitchen beats are not digital silence.
+
+## Running a whole film unattended
+
+- A film is a queue, not a conversation. Write every shot's prompt first, then hand the entire list
+  to one runner and let it work through them: start frame, motion, log the failure and go on to the
+  next. Stopping after six shots to show progress and waiting to be told to continue wastes hours
+  and makes the person watch the machine. Generation is cheap enough to run the whole film in one
+  pass and review the result.
+- The runner reads three small files per shot: the still prompt, the motion prompt, and a `who`
+  file naming which identity references to attach and how many seconds to generate. A shot that
+  needs no face skips the reference model entirely and goes to text-to-image.
+- A slot longer than one generation is two segments, and the second one opens on the last clean
+  frame of the first (`ffmpeg -ss <duration - 0.12>`), so the look does not change across the join.
+  The same trick chains a sustained moment across several cuts: the final three shots of a film
+  that ends on one long look were generated as one continuous take in three pieces, each starting
+  where the last ended, with the world dimming and the light arriving over the run.
+- Skip any shot whose output already exists. Reruns then cost nothing, and a failed shot can be
+  retried by deleting one file rather than regenerating the batch.
+- Keep the assembly in a second script that reads the slot lengths from the shot table and cuts
+  each clip to its slot. Re-encode the cuts rather than copying: copied streams keep their own
+  timestamps and the concatenated file plays wrong even when the container reports the right length.
