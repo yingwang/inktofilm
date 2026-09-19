@@ -95,6 +95,32 @@ later, or trim its head). A music model asked for "a massive climax at the very 
 32 s of a 40 s bed and decay after; the curve shows it, and the cut to silence is then placed on
 the measured bar rather than where the prompt promised it.
 
+## Never scale a clip to a frame size that changes its aspect ratio
+
+The image and video models this project uses do not return 16:9. At the time of writing they
+return 1152 by 768, which is 3:2. An assembly step that ends with `scale=1920:1080` will
+therefore stretch every frame horizontally by about eighteen per cent. The distortion is
+uniform, so nothing looks obviously broken: backgrounds and props survive it, and the only
+place a viewer reliably notices is a face, which reads as slightly too wide. Both the Telewise
+and the WatchReader promos shipped with this fault before anyone caught it, and the person who
+caught it described it as the people looking a little wide rather than as a technical error.
+
+Scale proportionally and crop instead:
+
+```
+scale=1920:1080:force_original_aspect_ratio=increase:flags=lanczos,crop=1920:1080,format=yuv420p
+```
+
+Going from 3:2 to 16:9 this keeps the full width and removes a hundred rows from the top and
+another hundred from the bottom of a 1280-row intermediate. Where a composition is tight on
+headroom, bias the crop upward with `crop=1920:1080:0:(ih-1080)/2-40` rather than accepting a
+clipped scalp.
+
+Two habits follow from this. Probe the source before writing any filter, because the model's
+output size is not a constant and will change as models change. And whenever a filter names
+both dimensions, ask what happens if the input is not already that shape, since ffmpeg will
+obey the instruction rather than protect the picture.
+
 ## Stills, faces, and chained shots
 
 The plan decides these per shot, and the manifest records what each shot actually used.
